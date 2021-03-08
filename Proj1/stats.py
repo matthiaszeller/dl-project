@@ -3,7 +3,7 @@ import numpy as np
 import torch.nn.functional as F
 from torch import optim
 
-from train import train
+from training import train
 
 
 def train_multiple_runs(network_class, runs=10, epoch=30):
