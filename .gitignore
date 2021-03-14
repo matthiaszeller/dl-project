@@ -4,3 +4,10 @@
 .idea
 
 .ipynb_checkpoints
+
+
+# Data
+MNIST
+*.tar.gz
+
+
