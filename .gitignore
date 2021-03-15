@@ -11,3 +11,5 @@ MNIST
 *.tar.gz
 
 
+# Python
+__pycache__
