@@ -48,6 +48,9 @@ def train(network_, optimizer_, criterion_=F.binary_cross_entropy, epoch_nb=30, 
     tot_test_loss = []
     tot_test_acc = []
 
+    if debug_:
+        print('Epoch\tLoss Train\tAcc Train\tLoss Test\tAcc Test')
+
     for epoch in range(epoch_nb):
         train_loss, train_acc = train_epoch(network_, optimizer_, criterion_)
         test_loss, test_acc = test(network_, criterion_)
@@ -58,6 +61,6 @@ def train(network_, optimizer_, criterion_=F.binary_cross_entropy, epoch_nb=30, 
         tot_test_acc.append(test_acc)
 
         if debug_:
-            print(epoch, f'{train_loss:.4}\t{train_acc:.4}\t{test_loss:.4}\t{test_acc:.4}')
+            print(f'{epoch}\t{train_loss:.3}\t\t{train_acc:.4}\t\t{test_loss:.3}\t\t{test_acc:.4}')
 
     return tot_train_loss, tot_train_acc, tot_test_loss, tot_test_acc
