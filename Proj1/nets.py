@@ -1,5 +1,3 @@
-
-
 import torch
 import torch.nn.functional as F
 from torch import nn
@@ -9,7 +7,7 @@ class FullyDenseNet(nn.Module):
     def __init__(self):
         super(FullyDenseNet, self).__init__()
 
-        self.fc1 = nn.Linear(2*14*14, 300)
+        self.fc1 = nn.Linear(2 * 14 * 14, 300)
         self.fc2 = nn.Linear(300, 200)
         self.fc3 = nn.Linear(200, 100)
         self.fc4 = nn.Linear(100, 50)
@@ -22,6 +20,60 @@ class FullyDenseNet(nn.Module):
         x = torch.relu(self.fc3(x))
         x = torch.relu(self.fc4(x))
         x = self.fc5(x)
+        return torch.sigmoid(x)
+
+
+class CNN_model1(nn.Module):
+    def __init__(self):
+        super(CNN_model1, self).__init__()
+        self.conv1 = nn.Conv2d(2, 4, kernel_size=3)
+        self.conv2 = nn.Conv2d(4, 6, kernel_size=3)
+
+        self.fc1 = nn.Linear(6 * 10 * 10, 100)
+        self.fc2 = nn.Linear(100, 1)
+
+    def forward(self, x):
+        x = torch.relu(self.conv1(x))
+        x = torch.relu(self.conv2(x))
+
+        x = nn.Flatten(1)(x)
+        x = torch.relu(self.fc1(x))
+        x = self.fc2(x)
+
+        return torch.sigmoid(x)
+
+
+class CNN_model2(nn.Module):
+    def __init__(self):
+        super(CNN_model2, self).__init__()
+        self.conv1 = nn.Conv2d(1, 4, kernel_size=3)
+        self.conv2 = nn.Conv2d(4, 6, kernel_size=3)
+
+        self.fc1 = nn.Linear(1200, 100)
+        self.fc2 = nn.Linear(100, 1)
+
+    def forward(self, x):
+        # I hate this , how do u make it batch independent ? should be like : x_l = x[0,:,:]
+        x_l = x[:, 0, :, :]
+        x_r = x[:, 1, :, :]
+
+        x_l = x_l.view(x_l.shape[0], 1, 14, 14)
+        x_r = x_r.view(x_r.shape[0], 1, 14, 14)
+
+        x_l = torch.relu(self.conv1(x_l))
+        x_l = torch.relu(self.conv2(x_l))
+
+        x_r = torch.relu(self.conv1(x_r))
+        x_r = torch.relu(self.conv2(x_r))
+
+        x_r = nn.Flatten(1)(x_r)
+        x_l = nn.Flatten(1)(x_l)
+
+        x = torch.cat((x_r, x_l), 1)
+
+        x = torch.relu(self.fc1(x))
+        x = self.fc2(x)
+
         return torch.sigmoid(x)
 
 
