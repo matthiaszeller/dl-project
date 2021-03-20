@@ -1,5 +1,3 @@
-
-
 import argparse
 
 import torch.nn.functional as F
@@ -15,7 +13,10 @@ def train_network(net_class, loss=F.binary_cross_entropy, lr=0.01):
     net = net_class()
     optimizer = optim.SGD(net.parameters(), lr=lr, momentum=0.5)
     print_section(f'Training {net}')
-    tot_train_loss, tot_train_acc, tot_test_loss, tot_test_acc = train(net, optimizer, loss)
+    _,_,_,_ = train(net, optimizer, loss)
+
+    del net
+    del optimizer
 
 
 def main():
@@ -27,11 +28,10 @@ def main():
 
     # --- Train networks
     train_network(FullyDenseNet)
-
     train_network(FullyDenseNetAux, custom_loss)
-
-    train_network(CNN_model1)
+    train_network(CNN_model1, lr=0.001)
     train_network(CNN_model2, lr=0.001)
+
 
     # --- Run statistics
     if args.stats:
