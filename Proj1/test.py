@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from torch import optim
 
 from loss import custom_loss
-from nets import FullyDenseNet, FullyDenseNetAux
+from nets import *
 from stats import train_multiple_runs, plot_std_loss_acc
 from training import train
 
@@ -29,6 +29,9 @@ def main():
     train_network(FullyDenseNet)
 
     train_network(FullyDenseNetAux, custom_loss)
+
+    train_network(CNN_model1)
+    train_network(CNN_model2, lr=0.001)
 
     # --- Run statistics
     if args.stats:
