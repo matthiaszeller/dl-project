@@ -11,3 +11,6 @@ class Module(object):
     def backward(self, *gradwrtoutput):
         pass
 
+    def param(self):
+        return []
+
