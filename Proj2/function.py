@@ -1,4 +1,5 @@
 from module import Module
+import numpy as np
 
 
 class Function(Module):
@@ -33,3 +34,17 @@ class ActivationFunIdentity(ActivationFunction):
         self.f = lambda *x: x
         self.df = lambda *x: 1
 
+class relu(ActivationFunction):
+
+   def __init__(self):
+        super().__init__()
+
+        self.f = lambda *x: tuple(map(lambda y: np.maximum(0, y), x))
+        self.df = lambda *x: tuple(map(lambda y:(y>0).float(), x))
+        
+
+class tanh(ActivationFunction):
+   def __init__(self):
+        super().__init__()
+        self.f =  lambda *x: tuple(map(lambda y: np.tanh(y), x))
+        self.df = lambda *x: tuple(map(lambda y: 1-np.power(np.tanh(y),2), x)
