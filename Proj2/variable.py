@@ -31,17 +31,22 @@ class Tensor:
         self.zero_grad()
 
     def zero_grad(self) -> None:
+        # TODO shoud really clear parents here?
+        self.parents = []
         self.grad = torch.zeros_like(self.data)
 
     def backward(self) -> None:
         # Initialize the root adjoint variable: gradient wrt to itself -> 1 (scalar)
-        self.grad = torch.tensor(1.0)
+        self.grad = torch.tensor([[1.0]])
         self.backward_fun()
 
         # Walk through the graph backwards
         # TODO: currently only works for sequential (parallel branches in graph could not work)
         queue = self.parents.copy()
+        print('walking backward through graph')
         for p in queue:
+            if p._name is not None:
+                print(f'process {p._name}')
             p.backward_fun()
             queue.extend(p.parents)
 
@@ -82,7 +87,7 @@ class Tensor:
 
     def __repr__(self) -> str:
         name = '' if self._name is None else f', name={self._name}'
-        return f'Tensor({self.data}, grad={self.grad}{name})'
+        return f'Tensor({self.data}, grad={self.grad}{name}, pnum={len(self.parents)})'
 
 
 class Module(object):
@@ -117,9 +122,9 @@ class Module(object):
 
         Example: say c = f(a, b), with a,b,c tensors and f an operator. Then the backward function of f will be stored
         in c and will modify in place the gradient of tensors a and b."""
-        self._backward_fun(output, *inputs)
+        self._backward(output, *inputs)
 
-    def _backward_fun(self, output, *inputs) -> None:
+    def _backward(self, output, *inputs) -> None:
         """Subclass this method for elementary operations."""
         raise NotImplementedError
 
@@ -158,7 +163,7 @@ class Add(Function):
     def _forward(self, a, b):
         return Tensor(a.data + b.data)
 
-    def _backward_fun(self, output, *inputs):
+    def _backward(self, output, *inputs):
         inputs[0].grad += output.grad
         inputs[1].grad += output.grad
 
@@ -169,7 +174,7 @@ class Sub(Function):
     def _forward(self, a, b):
         return Tensor(a.data - b.data)
 
-    def _backward_fun(self, output, *inputs):
+    def _backward(self, output, *inputs):
         inputs[0].grad += output.grad
         inputs[1].grad -= output.grad
 
@@ -180,7 +185,7 @@ class Mul(Function):
     def _forward(self, a, b):
         return Tensor(a.data * b.data)
 
-    def _backward_fun(self, output, *inputs):
+    def _backward(self, output, *inputs):
         inputs[0].grad += output.grad * inputs[1].data
         inputs[1].grad += output.grad * inputs[0].data
 
@@ -191,7 +196,7 @@ class MatMul(Function):
     def _forward(self, a, b):
         return Tensor(a.data @ b.data)
 
-    def _backward_fun(self, output, *inputs):
+    def _backward(self, output, *inputs):
         # If matmul results in a scalar (e.g. because it was a dot product), simply multiply with scalar
         if output.grad.dim() < 1:
             inputs[0].grad += output.grad * inputs[1].data
@@ -207,7 +212,7 @@ class Sum(Function):
     def _forward(self, a):
         return Tensor(a.data.sum())
 
-    def _backward_fun(self, output, *inputs):
+    def _backward(self, output, *inputs):
         inputs[0].grad += output.grad * torch.ones_like(inputs[0].data)
 
 
@@ -218,7 +223,7 @@ class Dot(Function):
         """a, b are both 1D tensors"""
         return Tensor(a.data.dot(b.data))
 
-    def _backward_fun(self, output, *inputs):
+    def _backward(self, output, *inputs):
         a, b = inputs
         a.grad += output.grad * b.data
         b.grad += output.grad * a.data
@@ -230,7 +235,7 @@ class ReLU(Function):
     def _forward(self, x) -> Tensor:
         return Tensor((x.data > 0.0) * x.data)
 
-    def _backward_fun(self, output, *inputs) -> None:
+    def _backward(self, output, *inputs) -> None:
         # input and output have the same shape, simply multiply element-wise
         inputs[0].grad += output.grad * (inputs[0].data > 0.0)
 
@@ -241,7 +246,7 @@ class Transpose(Function):
     def _forward(self, a):
         return Tensor(a.data.T)
 
-    def _backward_fun(self, output, *inputs):
+    def _backward(self, output, *inputs):
         inputs[0].grad += output.grad.T
 
 
@@ -254,7 +259,7 @@ class MSELoss(Function):
         self._context['err_over_n'] = err / n
         return Tensor(res)
 
-    def _backward_fun(self, output, *inputs):
+    def _backward(self, output, *inputs):
         inputs[0].grad += 2 * self._context['err_over_n']
         inputs[1].grad -= 2 * self._context['err_over_n']
 
@@ -271,7 +276,7 @@ class Layer(Module):
     def _forward(self, *inputs) -> Tensor:
         raise Exception('This is a composite operator and should not have and _forward function.')
 
-    def _backward_fun(self, output, *inputs):
+    def _backward(self, output, *inputs):
         raise Exception('This is a composite operator and should not have any backward function, you probably '
                         'implemented _forward() instead of forward().')
 
@@ -279,13 +284,25 @@ class Layer(Module):
 class LinearLayer(Layer):
     _name = 'Linear'
 
-    def __init__(self, n_in: int, n_out: int):
+    def __init__(self, n_in: int, n_out: int, xavier_init: bool = True):
         super(LinearLayer, self).__init__(n_in, n_out)
 
-        self.W = Tensor(torch.randn(self.n_out, self.n_in), 'W')
-        self.b = Tensor(torch.randn(self.n_out), 'b')
+        self.W = torch.randn(self.n_out, self.n_in)
+        self.b = torch.randn(self.n_out)
+
+        if xavier_init:
+            std = 2 / (self.n_in + self.n_out)
+            self.W.normal_(0, std)
+            self.b.normal_(0, std)
+
+        self.W = Tensor(self.W, 'W')
+        self.b = Tensor(self.b, 'b')
 
     def forward(self, x):
+        # # Handle single input vs minibatch
+        # print(self)
+        # if x.shape[1] > 1:
+        #     return x @ self.W.T + self.b
         return self.W @ x + self.b
 
     def _params(self):
