@@ -8,8 +8,9 @@ from math import pi
 import torch
 from matplotlib import pyplot as plt
 
-from training import Dataset, train_sgd
-from autograd import *
+import function as F
+from module import LinearLayer, Sequential
+from training import Dataset, train_SGD
 
 # Disable globally autograd
 torch.set_grad_enabled(False)
@@ -54,23 +55,23 @@ xtest  = (xtest  - mu) / std
 # 3 hidden layers of
 model = Sequential(
     LinearLayer(2, 25),
-    ReLU(),
+    F.ReLU(),
     LinearLayer(25, 25),
-    ReLU(),
+    F.ReLU(),
     LinearLayer(25, 25),
-    ReLU(),
+    F.ReLU(),
     LinearLayer(25, 1)
 )
 print(f'Model: {model}')
 
-mse = MSELoss()
+mse = F.MSELoss()
 train_dataset = Dataset(xtrain, ytrain)
 print('Launching training...')
-train_log = train_sgd(
+train_log = train_SGD(
     train_dataset,
     model,
     mse,
-    lr=0.01,
+    lr=0.1,
     epochs=30
 )
 print('Training done')

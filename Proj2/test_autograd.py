@@ -1,7 +1,12 @@
+
+
 import unittest
 
-from autograd import Tensor, MSELoss, LinearLayer, ReLU
 import torch
+
+from function import MSELoss, ReLU
+from module import LinearLayer
+from tensor import Tensor
 
 
 class TestScalarAutograd(unittest.TestCase):

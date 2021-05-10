@@ -5,7 +5,9 @@ from time import time
 import numpy as np
 import torch
 
-from autograd import Tensor, Module, Function
+from module import Module
+from tensor import Tensor
+from function import Function
 
 
 class Dataset:
@@ -55,7 +57,7 @@ def train_epoch_sgd(dataset: Dataset, model: Module, loss_fun: Function, lr: flo
     return data
 
 
-def train_sgd(dataset: Dataset, model: Module, loss_fun: Function, lr: float, epochs: int, lambda_: float = 0):
+def train_SGD(dataset: Dataset, model: Module, loss_fun: Function, lr: float, epochs: int, lambda_: float = 0):
     losses = []
     times = []
     weights = []
