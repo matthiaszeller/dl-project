@@ -1,6 +1,6 @@
 import unittest
 
-from variable import Tensor, MSELoss, LinearLayer
+from variable import Tensor, MSELoss, LinearLayer, ReLU
 import torch
 
 
@@ -23,7 +23,7 @@ class TestScalarAutograd(unittest.TestCase):
         self.assertEqual(b.grad, 2.0)
 
 
-class TestLoss(unittest.TestCase):
+class TestFunctions(unittest.TestCase):
     def test_mse(self):
         a = Tensor([1, 2, 3])
         b = Tensor([-1, -1, -1])
@@ -34,6 +34,18 @@ class TestLoss(unittest.TestCase):
         self.assertEqual(c.data, (err**2).sum() / 3)
         self.assertTrue(torch.equal(a.grad, 2/3*err))
         self.assertTrue(torch.equal(b.grad, -2/3*err))
+
+    def test_relu(self):
+        a = Tensor([-3.3, 1.0, -0.5, 0.0, 10])
+        b = ReLU()(a)
+        expected = torch.tensor([.0, 1.0, .0, .0, 10]).reshape(-1, 1)
+        self.assertTrue(torch.equal(b.data, expected))
+
+        c = b.sum()
+        self.assertEqual(c.item(), 11)
+        c.backward()
+        agrad = torch.tensor([0., 1, 0, 0, 1]).reshape(-1, 1)
+        self.assertTrue(torch.equal(a.grad, agrad))
 
 
 class TestLayer(unittest.TestCase):
