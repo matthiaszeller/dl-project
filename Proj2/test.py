@@ -20,20 +20,31 @@ from variable import *
 # e.backward()
 
 
+# layer = LinearLayer(3, 1)
+# x = Tensor(torch.tensor([1, 2, 3]).reshape(-1, 1))
+# layer.W = Tensor([[1, -1, 2]])
+# layer.b = Tensor(2)
+#
+# target = Tensor(1)
+# y = layer(x)
+# l = MSELoss()(y, target)
+#
+# x._name = 'x'
+# y._name = 'y'
+# l._name = 'l'
+# layer.W._name = 'W'
+# layer.b._name = 'b'
+# l.backward()
 
+s = Sequential(
+    LinearLayer(5, 2),
+    ReLU(),
+    LinearLayer(2, 1)
+)
 
-layer = LinearLayer(3, 1)
-x = Tensor(torch.tensor([1, 2, 3]).reshape(-1, 1))
-layer.W = Tensor([[1, -1, 2]])
-layer.b = Tensor(2)
+x = Tensor([1, 2, 3, 4, 5])
 
-target = Tensor(1)
-y = layer(x)
-l = MSELoss()(y, target)
+y = s(x)
 
-x._name = 'x'
-y._name = 'y'
-l._name = 'l'
-layer.W._name = 'W'
-layer.b._name = 'b'
-l.backward()
+s.zero_grad()
+y.backward()

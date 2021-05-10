@@ -1,16 +1,18 @@
 from __future__ import annotations
 
-from typing import Union, Any, List
+from typing import List, Tuple, Union
 
 import torch
 
 
 class Tensor:
+    """Wrap torch.tensor class by adding gradients, backward functions and storing parent Tensors."""
 
     parents: List[Tensor]
     _name = None
 
-    def __init__(self, data):
+    def __init__(self, data, name=None):
+        # Preprocess input data: make it a torch tensor of floats (reshape to matrix if data.dim() < 2).
         if not isinstance(data, torch.Tensor):
             data = torch.tensor(data)
 
@@ -21,6 +23,7 @@ class Tensor:
         if data.dim() < 2:
             data = data.reshape(-1, 1)
 
+        self._name = name
         self.data = data
         self.grad = None
         self.backward_fun = lambda: ()
@@ -83,7 +86,7 @@ class Tensor:
 
 
 class Module(object):
-    _name = ''
+    _name = 'name for debugging, redefine this in subclasses'
 
     def __init__(self):
         self._context = dict()
@@ -108,7 +111,7 @@ class Module(object):
         """Actual forward computation for elementary operations."""
         raise NotImplementedError
 
-    def backward(self, output, *inputs):
+    def backward(self, output, *inputs) -> None:
         """Backward function stored in tensors that are results of an operation.
         The gradient of the 'parent' tensors will be modified in place.
 
@@ -116,17 +119,21 @@ class Module(object):
         in c and will modify in place the gradient of tensors a and b."""
         self._backward_fun(output, *inputs)
 
-    def _backward_fun(self, output, *inputs):
+    def _backward_fun(self, output, *inputs) -> None:
         """Subclass this method for elementary operations."""
         raise NotImplementedError
 
-    def params(self):
+    def params(self) -> List[Tuple[torch.Tensor, torch.Tensor]]:
         """Return a list of tuples for each parameter: (tensor, gradient)."""
         return [(e.data, e.grad) for e in self._params()]
 
-    def _params(self):
+    def _params(self) -> List[Tensor]:
         """Subclass this method to return a list of Tensors"""
-        raise []
+        return []
+
+    def zero_grad(self):
+        for p in self._params():
+            p.zero_grad()
 
     def __call__(self, *args, **kwargs):
         return self.forward(*args)
@@ -212,6 +219,17 @@ class Dot(Function):
         b.grad += output.grad * a.data
 
 
+class ReLU(Function):
+    _name = 'relu'
+
+    def _forward(self, x) -> Tensor:
+        return Tensor((x.data > 0.0) * x.data)
+
+    def _backward_fun(self, output, *inputs) -> None:
+        # input and output have the same shape, simply multiply element-wise
+        inputs[0].grad += output.grad * (inputs[0].data > 0.0)
+
+
 class Transpose(Function):
     _name = 'transpose'
 
@@ -237,11 +255,16 @@ class MSELoss(Function):
 
 
 class Layer(Module):
+    """Layers defined as a composition of elementary operations.
+    Must reimplement forward (not _forward) and _params (not params) if any."""
     def __init__(self, n_in: int, n_out: int):
         super(Layer, self).__init__()
 
         self.n_in = n_in
         self.n_out = n_out
+
+    def _forward(self, *inputs) -> Tensor:
+        raise Exception('This is a composite operator and should not have and _forward function.')
 
     def _backward_fun(self, output, *inputs):
         raise Exception('This is a composite operator and should not have any backward function, you probably '
@@ -249,14 +272,52 @@ class Layer(Module):
 
 
 class LinearLayer(Layer):
+    _name = 'Linear'
+
     def __init__(self, n_in: int, n_out: int):
         super(LinearLayer, self).__init__(n_in, n_out)
 
-        self.W = Tensor(torch.randn(self.n_out, self.n_in))
-        self.b = Tensor(torch.randn(self.n_out))
+        self.W = Tensor(torch.randn(self.n_out, self.n_in), 'W')
+        self.b = Tensor(torch.randn(self.n_out), 'b')
 
     def forward(self, x):
         return self.W @ x + self.b
 
     def _params(self):
         return [self.W, self.b]
+
+    def __repr__(self):
+        return f'{self._name}({self.n_in}, {self.n_out})'
+
+
+class Sequential(Layer):
+    def __init__(self, *layers: Union[Layer, Function]):
+        self.layers = layers
+        n_in = self.layers[0].n_in
+
+        n_out = self.layers[-1].n_out
+
+        super(Sequential, self).__init__(n_in, n_out)
+
+        # Add names for debugging
+        for i, l in enumerate(self.layers, 1):
+            if isinstance(l, LinearLayer):
+                l._name = f'FC{i}'
+                for p in l._params():
+                    p._name = f'{p._name}{i}'
+            else:
+                l._name = f'{l._name}{i}'
+
+    def forward(self, x) -> Tensor:
+        for l in self.layers:
+            x = l(x)
+        return x
+
+    def _params(self) -> List[Tensor]:
+        return [
+            p for l in self.layers for p in l._params()
+        ]
+
+    def __repr__(self):
+        layers = ', '.join(str(l) for l in self.layers)
+        return f'Sequential({layers})'
