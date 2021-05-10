@@ -1,6 +1,6 @@
 import unittest
 
-from variable import Tensor, MSELoss, LinearLayer, ReLU
+from autograd import Tensor, MSELoss, LinearLayer, ReLU
 import torch
 
 

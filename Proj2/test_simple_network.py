@@ -3,7 +3,7 @@ from time import time
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
-from variable import Sequential, LinearLayer, ReLU, Tensor, Module, Function, MSELoss
+from autograd import Sequential, LinearLayer, ReLU, Tensor, Module, Function, MSELoss
 
 # Disable globally autograd
 torch.set_grad_enabled(False)
