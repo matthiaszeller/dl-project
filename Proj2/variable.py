@@ -135,6 +135,11 @@ class Module(object):
         for p in self._params():
             p.zero_grad()
 
+    def step(self, lr):
+        """Make a small step in the gradient descending direction of each parameter tensor."""
+        for p in self._params():
+            p.data -= lr * p.grad
+
     def __call__(self, *args, **kwargs):
         return self.forward(*args)
 
