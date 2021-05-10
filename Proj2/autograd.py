@@ -1,3 +1,5 @@
+
+
 from __future__ import annotations
 
 from typing import List, Tuple, Union
@@ -43,10 +45,10 @@ class Tensor:
         # Walk through the graph backwards
         # TODO: currently only works for sequential (parallel branches in graph could not work)
         queue = self.parents.copy()
-        print('walking backward through graph')
+        #print('walking backward through graph')
         for p in queue:
-            if p._name is not None:
-                print(f'process {p._name}')
+            # if p._name is not None: # TODO remove this
+            #     print(f'process {p._name}')
             p.backward_fun()
             queue.extend(p.parents)
 
