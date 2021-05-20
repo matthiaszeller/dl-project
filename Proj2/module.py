@@ -1,8 +1,11 @@
+"""
+Implement the generic Module superclass, and the LinearLayer class.
+"""
 
+from typing import List, Tuple
 
-from typing import List, Union, Tuple
-
-import torch
+from torch import Tensor as TorchTensor
+from torch import randn
 
 from tensor import Tensor
 
@@ -11,13 +14,16 @@ class Module(object):
     _name = 'name for debugging, redefine this in subclasses'
 
     def __init__(self):
-        self._context = dict()
+        self._context = dict() # TODO Remove? only MSE uses this
 
     def forward(self, *inputs) -> Tensor:
         """Superclass method wrapping forward computation.
-        This method must **not** be subclassed for elementary operations (subclass _forward instead).
-        This method **must** be subclassed for operations that are a combination of elementary operations,
-        (e.g. linear layer)"""
+        This method must **not** be reimplemented for elementary operations (subclass _forward instead).
+        This method **must** be reimplemented for operations that are a combination of elementary operations,
+        (e.g. linear layer).
+
+        Calling a Module's forward function is equivalent to directly call the
+        """
         # Do actual forward computation
         res = self._forward(*inputs)
         # Initialize the backward function
@@ -30,7 +36,7 @@ class Module(object):
         return res
 
     def _forward(self, *inputs) -> Tensor:
-        """Actual forward computation for elementary operations."""
+        """Actual forward computation for elementary operations (i.e., reimplement this function for those modules)."""
         raise NotImplementedError
 
     def backward(self, output, *inputs) -> None:
@@ -42,58 +48,76 @@ class Module(object):
         self._backward(output, *inputs)
 
     def _backward(self, output, *inputs) -> None:
-        """Subclass this method for elementary operations."""
+        """Reimplement this method for elementary operations."""
         raise NotImplementedError
 
-    def params(self) -> List[Tuple[torch.Tensor, torch.Tensor]]:
+    def params(self) -> List[Tuple[TorchTensor, TorchTensor]]:
         """Return a list of tuples for each parameter: (tensor, gradient)."""
         return [(e.data, e.grad) for e in self._params()]
 
     def _params(self) -> List[Tensor]:
-        """Subclass this method to return a list of Tensors"""
+        """Reimplement this method to return a list of Tensors"""
         return []
 
-    def zero_grad(self):
+    def zero_grad(self) -> None:
+        """Resets the gradients of all parameters."""
         for p in self._params():
             p.zero_grad()
 
-    def step(self, lr):
-        """Make a small step in the gradient descending direction of each parameter tensor."""
+    def step(self, lr: float) -> None:
+        """Make a small step in the gradient descending direction of each parameter tensor.
+
+        :param lr: learning rate (step size)
+        """
         for p in self._params():
             p.data -= lr * p.grad
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> Tensor:
         return self.forward(*args)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self._name
 
 
 class Layer(Module):
-    """Layers defined as a composition of elementary operations.
-    Must reimplement forward (not _forward) and _params (not params) if any."""
+    """
+    Layers define a composition of elementary operations.
+    Must reimplement forward (not _forward) and _params (not params) if any.
+    """
     def __init__(self, n_in: int, n_out: int):
+        """
+        :param n_in: number of input features
+        :param n_out: number of output features
+        """
         super(Layer, self).__init__()
 
         self.n_in = n_in
         self.n_out = n_out
 
     def _forward(self, *inputs) -> Tensor:
-        raise Exception('This is a composite operator and should not have and _forward function.')
+        raise Exception('This is a composite operator and should not have any _forward function.')
 
-    def _backward(self, output, *inputs):
+    def _backward(self, output, *inputs) -> None:
         raise Exception('This is a composite operator and should not have any backward function, you probably '
                         'implemented _forward() instead of forward().')
 
 
 class LinearLayer(Layer):
+    """
+    Linear layer with Xavier weight initialization.
+    """
     _name = 'Linear'
 
     def __init__(self, n_in: int, n_out: int, xavier_init: bool = True):
+        """
+        :param n_in: number of input features
+        :param n_out: number of output features
+        :param xavier_init: use Xavier weight initialization if True, or standard normal distribution otherwise
+        """
         super(LinearLayer, self).__init__(n_in, n_out)
 
-        self.W = torch.randn(self.n_out, self.n_in)
-        self.b = torch.randn(self.n_out)
+        self.W = randn(self.n_out, self.n_in)
+        self.b = randn(self.n_out)
 
         if xavier_init:
             std = 2 / (self.n_in + self.n_out)
@@ -103,29 +127,34 @@ class LinearLayer(Layer):
         self.W = Tensor(self.W, 'W')
         self.b = Tensor(self.b, 'b')
 
-    def forward(self, x):
-        # # Handle single input vs minibatch
+    def forward(self, x) -> Tensor:
+        # # Handle single input vs minibatch # TODO remove?
         # print(self)
         # if x.shape[1] > 1:
         #     return x @ self.W.T + self.b
         return self.W @ x + self.b
 
-    def _params(self):
+    def _params(self) -> List[Tensor]:
         return [self.W, self.b]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'{self._name}({self.n_in}, {self.n_out})'
 
 
 class Sequential(Layer):
+    """Sequence of modules"""
     def __init__(self, *layers):
+        """
+        :param layers: list of modules, the first module is the input layer, the last module is the output layer
+        """
+        # Retrieve the number of input and output features of the sequence of modules as a whole
         self.layers = layers
         n_in = self.layers[0].n_in
         n_out = self.layers[-1].n_out
 
         super(Sequential, self).__init__(n_in, n_out)
 
-        # Add names for debugging
+        # Name layers and parameters for debugging
         for i, l in enumerate(self.layers, 1):
             if isinstance(l, LinearLayer):
                 l._name = f'FC{i}'
@@ -134,17 +163,24 @@ class Sequential(Layer):
             else:
                 l._name = f'{l._name}{i}'
 
-    def forward(self, x) -> Tensor:
+    def forward(self, x: Tensor) -> Tensor:
+        """
+        Sequentially feed the output of a module to the next module, starting with input `x` for the first module.
+
+        :param x: input of the first module
+        :return: output of the last layer
+        """
         for l in self.layers:
             x = l(x)
         return x
 
     def _params(self) -> List[Tensor]:
+        """Returns a list of parameters, flattened across layers."""
         return [
             p for l in self.layers for p in l._params()
         ]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         layers = ', '.join(str(l) for l in self.layers)
         return f'Sequential({layers})'
 
