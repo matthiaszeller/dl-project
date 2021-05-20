@@ -1,17 +1,23 @@
+"""
+Python module gathering functions, i.e. elementary operations as well as more complex ones (e.g. MSE).
+This module is typically imported as:
+    >>> import function as F
+"""
 
-
-import torch
+from torch import ones_like
 
 from module import Module
 from tensor import Tensor
 
 
 class Function(Module):
+    """Superclass of all functions."""
     def __init__(self):
         super(Function, self).__init__()
 
 
 class Add(Function):
+    """Matrix addition"""
     _name = 'add'
 
     def _forward(self, a, b):
@@ -23,6 +29,7 @@ class Add(Function):
 
 
 class Sub(Function):
+    """Matrix subtraction"""
     _name = 'sub'
 
     def _forward(self, a, b):
@@ -34,6 +41,7 @@ class Sub(Function):
 
 
 class Mul(Function):
+    """Element-wise multiplication (Hadamard product)"""
     _name = 'mul'
 
     def _forward(self, a, b):
@@ -45,6 +53,7 @@ class Mul(Function):
 
 
 class MatMul(Function):
+    """Matrix multiplication"""
     _name = 'matmul'
 
     def _forward(self, a, b):
@@ -61,16 +70,18 @@ class MatMul(Function):
 
 
 class Sum(Function):
+    """Summing all elements of a matrix"""
     _name = 'sum'
 
     def _forward(self, a):
         return Tensor(a.data.sum())
 
     def _backward(self, output, *inputs):
-        inputs[0].grad += output.grad * torch.ones_like(inputs[0].data)
+        inputs[0].grad += output.grad * ones_like(inputs[0].data)
 
 
 class Dot(Function):
+    # TODO: remove?
     _name = 'dot'
 
     def _forward(self, a, b):
@@ -84,6 +95,7 @@ class Dot(Function):
 
 
 class ReLU(Function):
+    """Rectified Linear Unit activation function"""
     _name = 'relu'
 
     def _forward(self, x) -> Tensor:
@@ -91,10 +103,12 @@ class ReLU(Function):
 
     def _backward(self, output, *inputs) -> None:
         # input and output have the same shape, simply multiply element-wise
-        inputs[0].grad += output.grad * (inputs[0].data > 0.0)
+        inputs[0].grad += output.grad * \
+                          (inputs[0].data > 0.0)
 
 
 class Transpose(Function):
+    """Matrix transpose"""
     _name = 'transpose'
 
     def _forward(self, a):
@@ -105,10 +119,10 @@ class Transpose(Function):
 
 
 class MSELoss(Function):
-    """Implement mean squared error loss. For efficiency, we don't create intermediate nodes."""
+    """Mean Squared Error loss function. For efficiency, we don't create intermediate nodes."""
     _name = 'mse'
 
-    def _forward(self, yhat, y):
+    def _forward(self, yhat, y): # TODO: reimplement as function of elementary operations, just as other functions?
         n = y.shape[0]
         err = yhat.data - y.data
         res = err.T @ err / n
