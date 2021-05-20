@@ -1,24 +1,29 @@
-
+"""
+Utility functions/classes used to train the network with stochastic gradient descent (SGD).
+"""
 
 from time import time
 
 import numpy as np
-import torch
+from torch import tensor
 
+from function import Function
 from module import Module
 from tensor import Tensor
-from function import Function
 
 
 class Dataset:
-    """Used to iterate over samples of a dataset during SGD."""
+    """
+    Convenience class used to iterate over samples of a dataset during SGD.
+    """
     def __init__(self, data, target, shuffle=False):
-        """data must be an n times d matrix, n = number of samples, d = number of features."""
+        """Data must be an n times d matrix, n = number of samples, d = number of features."""
         self.data = data
         self.target = target
         self.shuffle = shuffle
 
     def __iter__(self):
+        """Generate samples of (data, target)."""
         n = self.data.shape[0]
         iterator = np.random.permutation(n) if self.shuffle else range(n)
         for i in iterator:
@@ -29,7 +34,8 @@ class Dataset:
             yield x, y
 
 
-def train_epoch_sgd(dataset: Dataset, model: Module, loss_fun: Function, lr: float, lambda_: float):
+def train_epoch_sgd(dataset: Dataset, model: Module, loss_fun: Function, lr: float):
+    """Train the `model` over one epoch of the `dataset`."""
     losses = []
     t = time()
 
@@ -57,14 +63,21 @@ def train_epoch_sgd(dataset: Dataset, model: Module, loss_fun: Function, lr: flo
     return data
 
 
-def train_SGD(dataset: Dataset, model: Module, loss_fun: Function, lr: float, epochs: int, lambda_: float = 0):
+def train_SGD(dataset: Dataset, model: Module, loss_fun: Function, lr: float, epochs: int):
+    """
+    Train the `model` with the given `dataset`.
+    Returns a dictionnary containing:
+        - mean loss per epoch
+        - computation time of each epoch
+        - squared frobenius norm of model parameters at each epoch
+    """
     losses = []
     times = []
     weights = []
     print('epochs: ', end='')
     for epoch in range(1, epochs+1):
-        data = train_epoch_sgd(dataset, model, loss_fun, lr, lambda_)
-        losses.append(torch.tensor(data['loss']).mean().item())
+        data = train_epoch_sgd(dataset, model, loss_fun, lr)
+        losses.append(tensor(data['loss']).mean().item())
         times.append(data['time'])
         weights.append(data['weight'])
         print(epoch, end=' ')
