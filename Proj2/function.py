@@ -9,6 +9,7 @@ from torch import ones_like
 from module import Module
 from tensor import Tensor
 
+from math import exp
 
 class Function(Module):
     """Superclass of all functions."""
@@ -94,19 +95,6 @@ class Dot(Function):
         b.grad += output.grad * a.data
 
 
-class ReLU(Function):
-    """Rectified Linear Unit activation function"""
-    _name = 'relu'
-
-    def _forward(self, x) -> Tensor:
-        return Tensor((x.data > 0.0) * x.data)
-
-    def _backward(self, output, *inputs) -> None:
-        # input and output have the same shape, simply multiply element-wise
-        inputs[0].grad += output.grad * \
-                          (inputs[0].data > 0.0)
-
-
 class Transpose(Function):
     """Matrix transpose"""
     _name = 'transpose'
@@ -133,3 +121,38 @@ class MSELoss(Function):
         inputs[0].grad += 2 * self._context['err_over_n']
         inputs[1].grad -= 2 * self._context['err_over_n']
 
+
+class ReLU(Function):
+    """Rectified Linear Unit activation function"""
+    _name = 'relu'
+
+    def _forward(self, x) -> Tensor:
+        return Tensor((x.data > 0.0) * x.data)
+
+    def _backward(self, output, *inputs) -> None:
+        # input and output have the same shape, simply multiply element-wise
+        inputs[0].grad += output.grad * (inputs[0].data > 0.0)
+
+
+class Tanh(Function):
+    """Hyperbolic tangent activation function"""
+    _name = 'tanh'
+
+    def _forward(self, x) -> Tensor:
+        return Tensor(x.data.tanh())
+
+    def _backward(self, output, *inputs) -> None:
+        # d(tanh)/dx = 1 - tanh²
+        # TODO DOESNT WORK (blow up)
+        inputs[0].grad += output.grad * (1. - output.data.pow(2))
+
+
+class Sigmoid(Function):
+    _name = 'sigmoid'
+
+    def _forward(self, x) -> Tensor:
+        return Tensor(x.data.sigmoid())
+
+    def _backward(self, output, *inputs) -> None:
+        # d(sigmoid)/dx = sigmoid * (1 - sigmoid)
+        inputs[0].grad += output.grad * (output.data * (1. - output.data))

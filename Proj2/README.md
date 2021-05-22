@@ -30,5 +30,17 @@ The project is subdivided in the following Python modules:
   
 * `function.py`: implements all functions, e.g. addition, matrix multiplication, relu, tanh
 
-* `training.py`: gathers utility functions and classes used to train the network with the custom framework
+* `training.py`: gathers utility functions and classes used to train the network with the custom framework, 
+  in particular,
+    * `Dataset`: used to iterate over samples
+    * `train_SGD`: train a model, given a dataset, a loss function, a learning rate and the number of epochs
 
+
+## Test script
+
+The file `test.py` generates a dataset of 10,000 samples uniformly distributed over [0,1]^2. 
+Labels have a radial dependency. 80% of samples are used for the training set, 
+the remaining 20% for the test set.
+
+The model is a neural network with 3 hidden layers of 25 neurons each.
+The model is trained with MSE loss function, using SGD.

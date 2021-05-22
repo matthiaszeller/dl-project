@@ -13,3 +13,8 @@ MNIST
 
 # Python
 __pycache__
+
+
+# Generated figures
+fig*.pdf
+

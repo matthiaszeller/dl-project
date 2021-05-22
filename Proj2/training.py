@@ -4,8 +4,8 @@ Utility functions/classes used to train the network with stochastic gradient des
 
 from time import time
 
-import numpy as np
-from torch import tensor
+import torch
+from torch import tensor, randperm
 
 from function import Function
 from module import Module
@@ -16,7 +16,7 @@ class Dataset:
     """
     Convenience class used to iterate over samples of a dataset during SGD.
     """
-    def __init__(self, data, target, shuffle=False):
+    def __init__(self, data, target=None, shuffle=False):
         """Data must be an n times d matrix, n = number of samples, d = number of features."""
         self.data = data
         self.target = target
@@ -25,13 +25,19 @@ class Dataset:
     def __iter__(self):
         """Generate samples of (data, target)."""
         n = self.data.shape[0]
-        iterator = np.random.permutation(n) if self.shuffle else range(n)
-        for i in iterator:
-            # Take i-th row and instantiate Tensor
-            x = Tensor(self.data[i])
-            y = Tensor(self.target[i])
+        iterator = randperm(n) if self.shuffle else range(n)
+        # Generate data only
+        if self.target is None:
+            for i in iterator:
+                # Take i-th row and instantiate Tensor
+                x = Tensor(self.data[i])
+                yield x
+        else:
+            for i in iterator:
+                x = Tensor(self.data[i])
+                y = Tensor(self.target[i])
 
-            yield x, y
+                yield x, y
 
 
 def train_epoch_sgd(dataset: Dataset, model: Module, loss_fun: Function, lr: float):
@@ -81,10 +87,11 @@ def train_SGD(dataset: Dataset, model: Module, loss_fun: Function, lr: float, ep
         times.append(data['time'])
         weights.append(data['weight'])
         print(epoch, end=' ')
+    print()
 
     data = {
-        'loss': losses,
-        'time': times,
+        'loss': torch.tensor(losses),
+        'time': torch.tensor(times),
         'weight': weights
     }
     return data
