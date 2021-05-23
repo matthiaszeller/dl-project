@@ -96,3 +96,32 @@ def train_SGD(dataset: Dataset, model: Module, loss_fun: Function, lr: float, ep
     }
     return data
 
+
+def kfold_cv(model_fun, x, y, loss_fun, accfun, lr, epochs, k):
+    n = x.shape[0]
+    # Generate the folds, i.e. assign each data point to an integer {0, 1, ..., k-1}
+    folds = torch.randint(0, k, size=(n,))
+    results = []
+    for i in range(k):
+        xtrain = x[folds != i]
+        xtest = x[folds == i]
+        ytrain = y[folds != i]
+        ytest = y[folds == i]
+        # Normalize
+        mu, std = xtrain.mean(0), xtrain.std(0)
+        xtrain = (xtrain - mu) / std
+        xtest = (xtest - mu) / std
+        dataset = Dataset(xtrain, ytrain)
+        # Train
+        model = model_fun()
+        log = train_SGD(dataset, model, loss_fun, lr, epochs)
+        # Performance
+        yhat_train, ytrain = torch.tensor([[model(x).item(), y.item()] for x, y in dataset]).T
+        test_set = Dataset(xtest, ytest)
+        yhat_test, ytest = torch.tensor([[model(x).item(), y.item()] for x, y in test_set]).T
+        # Performance evaluation
+        log['acc_train'] = accfun(yhat_train, ytrain)
+        log['acc_test'] = accfun(yhat_test, ytest)
+        results.append(log)
+
+    return results

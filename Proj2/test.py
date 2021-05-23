@@ -9,6 +9,9 @@ torch.autograd is disabled with `torch.set_grad_enabled(False)`
 # --------------------------------------------------------- #
 
 # --- Standard modules
+import argparse
+import json
+from concurrent.futures import ThreadPoolExecutor
 from math import pi, sqrt
 from typing import Union, List
 
@@ -18,10 +21,15 @@ from matplotlib import pyplot as plt
 # --- Our custom modules
 import function as F
 from module import LinearLayer, Sequential
-from training import Dataset, train_SGD
+from training import Dataset, train_SGD, kfold_cv
 
 # --- Disable globally autograd
 torch.set_grad_enabled(False)
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--cv', help='cross validate learning rate', action='store_true')
+args = parser.parse_args()
 
 
 # --------------------------------------------------------- #
@@ -38,10 +46,10 @@ def acc(yhat, y):
     return (yhat.round().clip(0, 1) == y).to(float).mean().item()
 
 
-def build_model(activation_fun: F.Function, xavier_init: bool = True):
+def build_model(activation_fun: F.Function, xavier_init: bool = True, model_name: str = None):
     """Build a deep neural network with a fixed architecture:
     2 input neurons, 3 hidden layers of 25 neurons each, 1 output unit"""
-    return Sequential(
+    model = Sequential(
         LinearLayer(2, 25, xavier_init=xavier_init),
         activation_fun(),
         LinearLayer(25, 25, xavier_init=xavier_init),
@@ -50,6 +58,8 @@ def build_model(activation_fun: F.Function, xavier_init: bool = True):
         activation_fun(),
         LinearLayer(25, 1, xavier_init=xavier_init)
     )
+    model._name = model_name
+    return model
 
 
 def train_and_test(model: Sequential, train_set: Dataset, test_set: Dataset,
@@ -129,142 +139,68 @@ xtest  = (xtest  - mu) / std
 
 # --- Build models
 models = [
-    {'activation_fun': F.ReLU, 'xavier_init': True},
-    # TODO DOESNT WORK {'activation_fun': F.Tanh, 'xavier_init': False, 'lr': 0.1},
-    {'activation_fun': F.Sigmoid, 'xavier_init': False}
+    {'activation_fun': F.ReLU, 'xavier_init': True, 'model_name': 'relu'},
+    {'activation_fun': F.Tanh, 'xavier_init': False, 'model_name': 'tanh'},
+    {'activation_fun': F.Sigmoid, 'xavier_init': False, 'model_name': 'sigmoid'}
 ]
 
-models = [build_model(**kwargs) for kwargs in models]
+# Learning rates of each model: selected by KFoldCV (run this script with --cv argument)
+lrs = [
+    0.01,
+    0.005,
+    0.1
+]
 
-pretty_print_section('models')
-for m in models:
-    print(m)
+if args.cv:
+    results = []
+    lrs = [0.001, 0.005, 0.01, 0.05, 0.1, 0.15, 0.2]
+    for m in models:
+        print(f'model {m["model_name"]}')
+        for lr in lrs:
+            print(f'lr {lr}')
+            res = kfold_cv(lambda: build_model(**m), X, target, F.MSELoss(), acc, lr=lr, epochs=20, k=5)
+            train_acc = [e['acc_train'] for e in res]
+            test_acc = [e['acc_test'] for e in res]
+            results.append({
+                'model': m["model_name"],
+                'lr': lr,
+                'acc_train': train_acc,
+                'acc_test': test_acc
+            })
 
+    with open('cv_results.json', 'w') as f:
+        json.dump(results, f)
 
-# --- Train models
-train_dataset = Dataset(xtrain, ytrain)
-test_dataset = Dataset(xtest, ytest)
+else:
+    models = [build_model(**kwargs) for kwargs in models]
 
-pretty_print_section('training')
-for model in models:
-    log, train_acc, test_acc = train_and_test(model, train_dataset, test_dataset, F.MSELoss(), lr=0.15, epochs=10)
-    plt.plot(log['loss'])
+    pretty_print_section('models')
+    for m in models:
+        print(m)
 
-plt.show()
+    # --- Train models
+    train_dataset = Dataset(xtrain, ytrain)
+    test_dataset = Dataset(xtest, ytest)
 
-# --- Performance evaluation
-pretty_print_section('performance evaluation')
-print('\t\t\tTrain accuracy\t\tTest accuracy')
-for r in results:
-    _, acc_train, acc_test = r
-    print(f'  model   \t{acc_train:.3}\t\t\t\t{acc_test:.3}')
+    pretty_print_section('training')
+    results = []
+    for model, lr in zip(models, lrs):
+        print(f'model {model._name}\t', end='')
+        log, train_acc, test_acc = train_and_test(model, train_dataset, test_dataset, F.MSELoss(), lr=lr, epochs=25)
+        plt.semilogy(log['loss'], '-o', label=model._name)
+        results.append((log, train_acc, test_acc))
 
-exit()
+    plt.xlabel('epochs')
+    plt.ylabel('average MSE per epoch')
+    plt.legend()
+    plt.savefig('fig_loss.pdf', bbox_inches='tight')
+    plt.show()
 
-# --- Create models
-# 3 hidden layers of 25 neurons each
-model_relu = Sequential(
-    LinearLayer(2, 25),
-    F.ReLU(),
-    LinearLayer(25, 25),
-    F.ReLU(),
-    LinearLayer(25, 25),
-    F.ReLU(),
-    LinearLayer(25, 1)
-)
-
-model_tanh = Sequential(
-    LinearLayer(2, 25, xavier_init=False),
-    F.Sigmoid(),
-    LinearLayer(25, 25, xavier_init=False),
-    F.Sigmoid(),
-    LinearLayer(25, 25, xavier_init=False),
-    F.Sigmoid(),
-    LinearLayer(25, 1, xavier_init=False)
-)
-
-pretty_print_section('Models')
-print(f'Model 1:\t{model_relu}')
-print(f'Model 2:\t{model_tanh}')
-
-# --- Train with MSE loss & SGD
-# Initialize training
-mse = F.MSELoss()
-train_dataset = Dataset(xtrain, ytrain)
-lr, epochs = 0.15, 10
-
-# ReLU model
-print('Training model 1 ...')
-relu_log = train_SGD(
-    train_dataset,
-    model_relu,
-    mse,
-    lr=0.15,
-    epochs=8
-)
-print(f'Training time: {relu_log["time"].sum().item():.3} s')
-
-# Tanh model
-print('Training model 2 ...')
-tanh_log = train_SGD(
-    train_dataset,
-    model_tanh,
-    mse,
-    lr=0.15,
-    epochs=35
-)
-print(f'Training time: {tanh_log["time"].sum().item():.3} s')
-
-# --- Plot loss
-losses, times, weights_norm = relu_log['loss'], relu_log['time'], relu_log['weight']
-plt.plot(relu_log['loss'], '-o', label='relu activation funs')
-plt.plot(tanh_log['loss'], '-o', label='tanh activation funs')
-plt.xlabel('epoch')
-plt.ylabel('MSE')
-plt.legend()
-plt.show()
+    # --- Performance evaluation
+    pretty_print_section('performance evaluation')
+    print('\t\t\tTrain accuracy\t\tTest accuracy')
+    for r, mod in zip(results, models):
+        _, acc_train, acc_test = r
+        print(f'{mod._name}\t\t{acc_train:.3}\t\t\t\t{acc_test:.3}')
 
 
-# --------------------------------------------------------- #
-#                          TESTING                          #
-# --------------------------------------------------------- #
-
-pretty_print_section('performance evaluation')
-print('Computing accuracy as: i) round output to nearest integer ii) clip to (0, 1)')
-
-
-
-# --- Training accuracy
-# Predict
-yhat_relu_train = torch.tensor([model_relu(x).item() for x, _ in train_dataset])
-yhat_tanh_train = torch.tensor([model_tanh(x).item() for x, _ in train_dataset])
-
-# Compute accuracy
-train_acc_relu = acc(yhat_relu_train, ytrain)
-train_acc_tanh = acc(yhat_tanh_train, ytrain)
-
-# --- Test accuracy
-test_dataset = Dataset(xtest, ytest)
-# Predict
-yhat_relu_test = torch.tensor([model_relu(x).item() for x, _ in test_dataset])
-yhat_tanh_test = torch.tensor([model_tanh(x).item() for x, _ in test_dataset])
-# Compute accuracy
-test_acc_relu = acc(yhat_relu_test, ytest)
-test_acc_tanh = acc(yhat_tanh_test, ytest)
-
-# --- Print accuracy
-print('\t\t\tTrain accuracy\t\tTest accuracy')
-print(f'Relu model\t{train_acc_relu:.3}\t\t\t\t{test_acc_relu:.3}')
-print(f'Tanh model\t{train_acc_tanh:.3}\t\t\t\t{test_acc_tanh:.3}')
-
-
-# TODO make this work
-# # Generate grid
-# x = torch.linspace(0., 1., 10)
-# xx, yy = torch.meshgrid(x, x)
-# grid = torch.hstack((xx.reshape(-1, 1), yy.reshape(-1, 1)))
-# yhat_grid2 = torch.tensor([model_relu(x).item() for x in Dataset(grid)])
-# yhat_grid = yhat_grid2.round().clip(0, 1).reshape(xx.shape)
-#
-# plt.contourf(xx, yy, yhat_grid, cmap='Paired')
-# plt.show()
