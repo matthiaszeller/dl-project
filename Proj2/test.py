@@ -144,13 +144,15 @@ models = [
     {'activation_fun': F.Sigmoid, 'xavier_init': False, 'model_name': 'sigmoid'}
 ]
 
-# Learning rates of each model: selected by KFoldCV (run this script with --cv argument)
+# --- Learning rates
+# Selected by KFoldCV (run this script with --cv argument)
 lrs = [
     0.01,
     0.005,
     0.1
 ]
 
+# --- Cross validation
 if args.cv:
     results = []
     lrs = [0.001, 0.005, 0.01, 0.05, 0.1, 0.15, 0.2]
@@ -171,6 +173,7 @@ if args.cv:
     with open('cv_results.json', 'w') as f:
         json.dump(results, f)
 
+# ---
 else:
     models = [build_model(**kwargs) for kwargs in models]
 

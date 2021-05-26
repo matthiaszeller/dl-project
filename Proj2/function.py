@@ -9,7 +9,6 @@ from torch import ones_like
 from module import Module
 from tensor import Tensor
 
-from math import exp
 
 class Function(Module):
     """Superclass of all functions."""
@@ -81,20 +80,6 @@ class Sum(Function):
         inputs[0].grad += output.grad * ones_like(inputs[0].data)
 
 
-class Dot(Function):
-    # TODO: remove?
-    _name = 'dot'
-
-    def _forward(self, a, b):
-        """a, b are both 1D tensors"""
-        return Tensor(a.data.dot(b.data))
-
-    def _backward(self, output, *inputs):
-        a, b = inputs
-        a.grad += output.grad * b.data
-        b.grad += output.grad * a.data
-
-
 class Transpose(Function):
     """Matrix transpose"""
     _name = 'transpose'
@@ -110,7 +95,7 @@ class MSELoss(Function):
     """Mean Squared Error loss function. For efficiency, we don't create intermediate nodes."""
     _name = 'mse'
 
-    def _forward(self, yhat, y): # TODO: reimplement as function of elementary operations, just as other functions?
+    def _forward(self, yhat, y):
         n = y.shape[0]
         err = yhat.data - y.data
         res = err.T @ err / n
@@ -143,7 +128,6 @@ class Tanh(Function):
 
     def _backward(self, output, *inputs) -> None:
         # d(tanh)/dx = 1 - tanh²
-        # TODO DOESNT WORK (blow up)
         inputs[0].grad += output.grad * (1. - output.data.pow(2))
 
 

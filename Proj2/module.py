@@ -14,7 +14,8 @@ class Module(object):
     _name = 'name for debugging, redefine this in subclasses'
 
     def __init__(self):
-        self._context = dict() # TODO Remove? only MSE uses this
+        # Context used by some modules to store intermediate results
+        self._context = dict()
 
     def forward(self, *inputs) -> Tensor:
         """Superclass method wrapping forward computation.
@@ -128,10 +129,6 @@ class LinearLayer(Layer):
         self.b = Tensor(self.b, 'b')
 
     def forward(self, x) -> Tensor:
-        # # Handle single input vs minibatch # TODO remove?
-        # print(self)
-        # if x.shape[1] > 1:
-        #     return x @ self.W.T + self.b
         return self.W @ x + self.b
 
     def _params(self) -> List[Tensor]:

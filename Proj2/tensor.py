@@ -33,7 +33,6 @@ class Tensor:
         self.zero_grad()
 
     def zero_grad(self) -> None:
-        # TODO shoud really clear parents here?
         self.parents = []
         self.grad = torch.zeros_like(self.data)
 
@@ -43,12 +42,8 @@ class Tensor:
         self.backward_fun()
 
         # Walk through the graph backwards
-        # TODO: currently only works for sequential (parallel branches in graph could not work)
         queue = self.parents.copy()
-        #print('walking backward through graph')
         for p in queue:
-            # if p._name is not None: # TODO remove this
-            #     print(f'process {p._name}')
             p.backward_fun()
             queue.extend(p.parents)
 
@@ -67,9 +62,6 @@ class Tensor:
     def sum(self) -> Tensor:
         """Sum over all axes."""
         return F.Sum()(self)
-
-    def dot(self, other) -> Tensor:
-        return F.Dot()(self, other)
 
     @property
     def T(self) -> Tensor:
