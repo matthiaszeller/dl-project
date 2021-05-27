@@ -5,7 +5,7 @@ Implement the generic Module superclass, and the LinearLayer class.
 from typing import List, Tuple
 
 from torch import Tensor as TorchTensor
-from torch import randn
+from torch import empty
 
 from tensor import Tensor
 
@@ -117,13 +117,12 @@ class LinearLayer(Layer):
         """
         super(LinearLayer, self).__init__(n_in, n_out)
 
-        self.W = randn(self.n_out, self.n_in)
-        self.b = randn(self.n_out)
-
+        std = 1.0
         if xavier_init:
             std = 2 / (self.n_in + self.n_out)
-            self.W.normal_(0, std)
-            self.b.normal_(0, std)
+
+        self.W = empty(self.n_out, self.n_in).normal_(0, std)
+        self.b = empty(self.n_out).normal_(0, std)
 
         self.W = Tensor(self.W, 'W')
         self.b = Tensor(self.b, 'b')
@@ -176,6 +175,12 @@ class Sequential(Layer):
         return [
             p for l in self.layers for p in l._params()
         ]
+
+    def add_layer(self, layer: Module):
+        self.layers += (layer, )
+        # if layer doesn't have n_out, it doesn't change the dimension
+        if hasattr(layer, 'n_out'):
+            self.n_out = layer.n_out
 
     def __repr__(self) -> str:
         layers = ', '.join(str(l) for l in self.layers)
