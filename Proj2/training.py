@@ -2,10 +2,11 @@
 Utility functions/classes used to train the network with stochastic gradient descent (SGD).
 """
 
+from random import shuffle
 from time import time
 
 import torch
-from torch import tensor, randperm
+from torch import tensor
 
 from function import Function
 from module import Module
@@ -25,7 +26,9 @@ class Dataset:
     def __iter__(self):
         """Generate samples of (data, target)."""
         n = self.data.shape[0]
-        iterator = randperm(n) if self.shuffle else range(n)
+        iterator = list(range(n))
+        if self.shuffle:
+            shuffle(iterator)
         # Generate data only
         if self.target is None:
             for i in iterator:
@@ -86,7 +89,7 @@ def train_SGD(dataset: Dataset, model: Module, loss_fun: Function, lr: float, ep
         losses.append(tensor(data['loss']).mean().item())
         times.append(data['time'])
         weights.append(data['weight'])
-        print(epoch, end=' ')
+        print(epoch, end=' ', flush=True)
     print()
 
     data = {
