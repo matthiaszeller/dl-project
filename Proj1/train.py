@@ -21,8 +21,6 @@ train_dataloader = None
 test_dataloader = None
 
 
-
-
 # #############################
 #       Train utils         #
 #############################
@@ -65,9 +63,6 @@ def handle_loss(criterion_):
   if criterion_ is F.binary_cross_entropy:
     internal_criterion = lambda output, target, _: criterion_(output.flatten(), target)
     compute_acc = lambda output, target: (target == torch.round(output.flatten()) ).float()
-  #elif criterion_ is custom_loss_copy:
-  #  internal_criterion = criterion_
-  #  compute_acc = lambda output, target: (target == (torch.argmax(output[0] , dim=1)).flatten() ).float()
   else:
     internal_criterion = criterion_
     compute_acc = lambda output, target: (target == torch.round(output[0].flatten()) ).float()
@@ -75,7 +70,9 @@ def handle_loss(criterion_):
   return internal_criterion, compute_acc
 
 def train_epoch(network_ , optimizer_ , criterion_ = F.binary_cross_entropy ):
-  
+  """
+  Trains the model for one epoch and returns the loss and accuracy using the specified criterion
+  """
   internal_criterion, compute_acc = handle_loss(criterion_)
 
   loss_tot = []
