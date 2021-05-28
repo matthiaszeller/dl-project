@@ -9,18 +9,22 @@ Implementation of Weight Sharing and Auxiliary Loss on PyTorch for digit compari
 ## Running
 Run `test.py` without arguments to run each model once, displaying training and test accuracy. 
 
-**Note** : If the folder `data` of the MNIST Database is already present in the same folder as the scripts, then they won't download it. 
+**Note** : If the folder `data` of the MNIST Database is already present in the root `Proj1`, 
+then the dataset won't be downloaded.
+
+
 ## Project structure
 
 The project is subdivided in the following Python modules:
 
 
-* `test.py`: Main class, runs the models and gives feedback about them
+* `test.py`: Runs the models and print accuracies
 
-* `models.py`: Implements models inheriting from torch.nn.Module
+* `models.py`: Implements models that inherit from `torch.nn.Module`
 
-* `train.py`: Implements utils for training and testing
+* `train.py`: Implements utility functions for training and testing
 
-* `stats.py`: Implements tools to get stats from running models multiple times and for making plots
+* `stats.py`: Implements tools to get statistics from running models multiple times, makes plots
 
-* `utils.py`: Includes tools to generate data from MNIST database
+* `utils.py`: The script provided by the teacher. Includes tools to download MNIST data
+
