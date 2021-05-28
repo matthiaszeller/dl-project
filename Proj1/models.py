@@ -1,19 +1,22 @@
+
+
 # --------------------------------------------------------- #
 #                          IMPORTS                          #
 # --------------------------------------------------------- #
+
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
 
-#############################
-#     Define all Models     #
-#############################
+# --------------------------------------------------------- #
+#                     MODELS DEFINITION                     #
+# --------------------------------------------------------- #
 
-## different FCNN structure (Fully Connected Neural Network)
-##
-## kwargs["nodes_nb"] is a parameter for the constructor of the model
-## to get different number of nodes
+# different FCNN structure (Fully Connected Neural Network)
+#
+# kwargs["nodes_nb"] is a parameter for the constructor of the model
+# to get different number of nodes
 class FCNN_1LAYER(nn.Module):
     def __init__(self, **kwargs):
         super(FCNN_1LAYER, self).__init__()
@@ -115,10 +118,10 @@ class FCNN3(nn.Module):
         return torch.sigmoid(x)
 
 
-## different WS structure ( Weight Sharing )
-##
-## kwargs["nodes_nb"] is a parameter for the constructor of the model
-## to get different number of nodes
+# different WS structure ( Weight Sharing )
+#
+# kwargs["nodes_nb"] is a parameter for the constructor of the model
+# to get different number of nodes
 class WS2(nn.Module):
     def __init__(self, **kwargs):
         super(WS2, self).__init__()
@@ -245,10 +248,10 @@ class WS3(nn.Module):
         return torch.sigmoid(x)
 
 
-## different AL structure (Auxiliary loss)
-##
-## kwargs["nodes_nb"] is a parameter for the constructor of the model
-## to get different number of nodes
+# different AL structure (Auxiliary loss)
+#
+# kwargs["nodes_nb"] is a parameter for the constructor of the model
+# to get different number of nodes
 class AL1(nn.Module):
     def __init__(self, **kwargs):
         super(AL1, self).__init__()
@@ -413,5 +416,3 @@ class AL4(nn.Module):
 
         return torch.sigmoid(x), x_l, x_r
 
-#######################################################################
-#######################################################################

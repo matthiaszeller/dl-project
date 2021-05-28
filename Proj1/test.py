@@ -1,26 +1,26 @@
+
+
 # --------------------------------------------------------- #
 #                          IMPORTS                          #
 # --------------------------------------------------------- #
-import torch.nn as nn
+
 import torch.nn.functional as F
 
-import os
-
 # --- Custom Imports
-from models import FCNN_1LAYER, FCNN_2LAYER, FCNN_3LAYER, FCNN_4LAYER, FCNN3, \
-                   WS2, WS1, WS3, AL1, \
-                   AL3, AL2, AL4
+from models import FCNN3, \
+    WS2, WS1, WS3, AL1, \
+    AL3, AL2, AL4
+from stats import train_multiple_runs
 from train import custom_loss_BCELoss_CELoss, initialize_dataset
 
 initialize_dataset()
-from stats import train_multiple_runs
 
-print(' ######################\n',
+print('######################\n',
       '#      PROJECT 1     #\n',
       '######################\n')
 
 print('Authors :  \n',
-      '-- Mathias \n',
+      '-- Matthias \n',
       '-- Fatih   \n',
       '-- Etienne \n\n')
 

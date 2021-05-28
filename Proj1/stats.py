@@ -1,14 +1,18 @@
+
 # --------------------------------------------------------- #
 #                          IMPORTS                          #
 # --------------------------------------------------------- #
+
 import matplotlib.pyplot as plt
+import torch
 import torch.optim as optim
+
 from train import train
 
 
-#############################
-#     Stat train utils      #
-#############################
+# --------------------------------------------------------- #
+#               STATISTICS UTILITY FUNCTIONS                #
+# --------------------------------------------------------- #
 
 
 def train_multiple_runs(network_class, runs, epoch, lr_, criterion_, debug_v, **kwargs):
@@ -44,7 +48,6 @@ def plot_std_loss_acc(all_train_loss, all_train_acc, all_test_loss, all_test_acc
 
     print(f"mean last test acc : {tea_mean[-1]}")
     print(f"std  last test acc : { tea_std  [-1] }")
-    
 
     temp = [[trl_mean, trl_std, 'g', 'trl'],
             [tel_mean, tel_std, 'b', 'tel'],

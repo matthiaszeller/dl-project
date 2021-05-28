@@ -1,27 +1,29 @@
+
+
 # --------------------------------------------------------- #
 #                          IMPORTS                          #
 # --------------------------------------------------------- #
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import TensorDataset, DataLoader
 from utils import generate_pair_sets
 
-#############################
-#      Generate DataSet     #
-#############################
+# --------------------------------------------------------- #
+#                           DATA                            #
+# --------------------------------------------------------- #
 
 train_input, train_target, train_classes, test_input, test_target, test_classes = generate_pair_sets(1000)
 
-# BATCH SIZE
 BATCH_SIZE = 20
 train_dataloader = None
 test_dataloader = None
 
 
-# #############################
-#       Train utils         #
-#############################
+# -------------------------------------------------------- #
+#                      TRAINING UTILS                      #
+# -------------------------------------------------------- #
 
 def initialize_dataset():
     # TRAIN SET
@@ -36,22 +38,6 @@ def initialize_dataset():
     print('>> Dataset correctly loaded')
     print(f'batch size : ', BATCH_SIZE)
     print('\n\n')
-
-
-def custom_loss(output, target, classes, lambda_=1.0):
-    """
-    Custom loss for network with auxiliary losses. The total loss is a combination
-    of the loss of the main task (binary cross entropy) and the negative log likelihood
-    for the two auxiliary tasks. Importance of auxiliary losses is controlled by
-    the `lambda_` hyperparameter.
-    """
-    main, im1, im2 = output
-
-    main_loss = F.binary_cross_entropy(main.flatten(), target)
-    aux_loss_1 = F.nll_loss(im1, classes[:, 0])
-    aux_loss_2 = F.nll_loss(im2, classes[:, 1])
-
-    return main_loss + lambda_ * (aux_loss_1 + aux_loss_2)
 
 
 def handle_loss(criterion_):
@@ -114,7 +100,7 @@ def train(network_, optimizer_, criterion_=F.binary_cross_entropy, epoch_nb=30, 
     tot_test_loss = []
     tot_test_acc = []
 
-    if (debug_):
+    if debug_:
         print("%7s | %11s | %11s | %11s | %11s" % ("Epoch", "Train Loss", "Train Acc", "Test Loss", "Test Acc"))
 
     for epoch in range(epoch_nb):
@@ -127,19 +113,23 @@ def train(network_, optimizer_, criterion_=F.binary_cross_entropy, epoch_nb=30, 
         tot_test_loss.append(test_loss)
         tot_test_acc.append(test_acc)
 
-        if (debug_):
+        if debug_:
             print("%7.f | %11.2f | %11.4f | %11.4f | %11.4f" % (epoch, train_loss, train_acc, test_loss, test_acc))
 
     return tot_train_loss, tot_train_acc, tot_test_loss, tot_test_acc
 
 
-#############################
-#       Custom Loss         #
-#############################
+# --------------------------------------------------------- #
+#                        CUSTOM LOSS                        #
+# --------------------------------------------------------- #
 
 def custom_loss_BCELoss_CELoss(output, target, classes):
     """
-    Binary cross encropy and cross entroy
+    Binary cross encropy and cross entroy loss.
+    Custom loss for network with auxiliary losses. The total loss is a combination
+    of the loss of the main task (binary cross entropy) and the negative log likelihood
+    for the two auxiliary tasks. Importance of auxiliary losses is controlled by
+    the `lambda_` hyperparameter.
     """
     main, im1, im2 = output
 
