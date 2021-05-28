@@ -9,8 +9,7 @@ Implementation of Weight Sharing and Auxiliary Loss on PyTorch for digit compari
 ## Running
 Run `test.py` without arguments to run each model once, displaying training and test accuracy. 
 
-**Note** : If the folder `data` of the MNIST Database is already present in the same folder as the scripts, then they won't download it. If you have issues downloading it, you can get it on [this link](http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz).
-
+**Note** : If the folder `data` of the MNIST Database is already present in the same folder as the scripts, then they won't download it. 
 ## Project structure
 
 The project is subdivided in the following Python modules:
