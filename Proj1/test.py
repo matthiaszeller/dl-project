@@ -4,111 +4,105 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
-
 import os
 
 # --- Custom Imports
 from models import FCNN_1LAYER, FCNN_2LAYER, FCNN_3LAYER, FCNN_4LAYER, FCNN_image_specific, \
-  WS_FCNN_image_specific1, CNN_image_specific1, WS_CNN_image_specific1, AL_FCNN_image_specific,\
-     AL_WS_FCNN_image_specific1, AL_CNN_image_specific1, AL_WS_CNN_image_specific
+                   WS_FCNN_image_specific1, CNN_image_specific1, WS_CNN_image_specific1, AL_FCNN_image_specific, \
+                   AL_WS_FCNN_image_specific1, AL_CNN_image_specific1, AL_WS_CNN_image_specific
 from train import custom_loss_BCELoss_CELoss, initialize_dataset
+
 initialize_dataset()
 from stats import train_multiple_runs
 
 print(' ######################\n',
-       '#      PROJECT 1     #\n',
-       '######################\n')
+      '#      PROJECT 1     #\n',
+      '######################\n')
 
 print('Authors :  \n',
       '-- Mathias \n',
       '-- Fatih   \n',
       '-- Etienne \n\n')
 
-
 print('>> One run model : FCNN_image_specific : \n')
 
-all_train_loss , all_train_acc , all_test_loss , all_test_acc = train_multiple_runs( FCNN_image_specific ,
-                                                                                     runs = 1 ,
-                                                                                     epoch = 25 ,
-                                                                                     lr_= 0.0007  ,
-                                                                                     criterion_ = F.binary_cross_entropy,
-                                                                                      debug_v = True,
-                                                                                     nodes_nb = 1000 )
-
-
-
+res = train_multiple_runs(FCNN_image_specific,
+                          runs=1,
+                          epoch=25,
+                          lr_=0.0007,
+                          criterion_=F.binary_cross_entropy,
+                          debug_v=True,
+                          nodes_nb=1000)
 
 print('>> One run model : WS_FCNN_image_specific1 : \n')
 
-all_train_loss , all_train_acc , all_test_loss , all_test_acc = train_multiple_runs( WS_FCNN_image_specific1 ,
-                                                                                     runs = 1 ,
-                                                                                     epoch = 25 ,
-                                                                                     lr_= 0.0005 ,
-                                                                                     criterion_ = F.binary_cross_entropy,
-                                                                                      debug_v = True,
-                                                                                     nodes_nb = 1000 )
+res = train_multiple_runs(WS_FCNN_image_specific1,
+                          runs=1,
+                          epoch=25,
+                          lr_=0.0005,
+                          criterion_=F.binary_cross_entropy,
+                          debug_v=True,
+                          nodes_nb=1000)
 
 print('>> One run model : CNN_image_specific1 : \n')
 
-all_train_loss , all_train_acc , all_test_loss , all_test_acc = train_multiple_runs( CNN_image_specific1 ,
-                                                                                     runs = 1 ,
-                                                                                     epoch = 25 ,
-                                                                                     lr_= 0.0008 ,
-                                                                                     criterion_ = F.binary_cross_entropy,
-                                                                                      debug_v = True,
-                                                                                     nodes_nb = -1 )
-                                                                                     
+res = train_multiple_runs(CNN_image_specific1,
+                          runs=1,
+                          epoch=25,
+                          lr_=0.0008,
+                          criterion_=F.binary_cross_entropy,
+                          debug_v=True,
+                          nodes_nb=-1)
+
 print('>> One run model : WS_CNN_image_specific1 : \n')
 
-all_train_loss , all_train_acc , all_test_loss , all_test_acc = train_multiple_runs( WS_CNN_image_specific1 ,
-                                                                                     runs = 1 ,
-                                                                                     epoch = 25 ,
-                                                                                     lr_= 0.0008 ,
-                                                                                     criterion_ = F.binary_cross_entropy,
-                                                                                      debug_v = True,
-                                                                                     nodes_nb = -1 )
+res = train_multiple_runs(WS_CNN_image_specific1,
+                          runs=1,
+                          epoch=25,
+                          lr_=0.0008,
+                          criterion_=F.binary_cross_entropy,
+                          debug_v=True,
+                          nodes_nb=-1)
 
 print('>> One run model : AL_FCNN_image_specific : \n')
 
-all_train_loss , all_train_acc , all_test_loss , all_test_acc = train_multiple_runs( AL_FCNN_image_specific ,
-                                                                                     runs = 1 ,
-                                                                                     epoch = 25 ,
-                                                                                     lr_= 0.0005 ,
-                                                                                     criterion_ = custom_loss_BCELoss_CELoss,
-                                                                                      debug_v = True,
-                                                                                     nodes_nb = 1000 )
-                                                                                    
-                                                                                     
+res = train_multiple_runs(AL_FCNN_image_specific,
+                          runs=1,
+                          epoch=25,
+                          lr_=0.0005,
+                          criterion_=custom_loss_BCELoss_CELoss,
+                          debug_v=True,
+                          nodes_nb=1000)
+
 print('>> One run model : AL_WS_FCNN_image_specific1 : \n')
 
-all_train_loss , all_train_acc , all_test_loss , all_test_acc = train_multiple_runs( AL_WS_FCNN_image_specific1 ,
-                                                                                     runs = 1 ,
-                                                                                     epoch = 25 ,
-                                                                                     lr_= 0.0005 ,
-                                                                                     criterion_ = custom_loss_BCELoss_CELoss,
-                                                                                      debug_v = True,
-                                                                                     nodes_nb = 1000 )
+res = train_multiple_runs(AL_WS_FCNN_image_specific1,
+                          runs=1,
+                          epoch=25,
+                          lr_=0.0005,
+                          criterion_=custom_loss_BCELoss_CELoss,
+                          debug_v=True,
+                          nodes_nb=1000)
 
 print('>> One run model : AL_CNN_image_specific1 : \n')
 
-all_train_loss , all_train_acc , all_test_loss , all_test_acc = train_multiple_runs( AL_CNN_image_specific1 ,
-                                                                                     runs = 1 ,
-                                                                                     epoch = 25 ,
-                                                                                     lr_= 0.0008 ,
-                                                                                     criterion_ = custom_loss_BCELoss_CELoss,
-                                                                                      debug_v = True,
-                                                                                     nodes_nb = 1000 )
+res = train_multiple_runs(AL_CNN_image_specific1,
+                          runs=1,
+                          epoch=25,
+                          lr_=0.0008,
+                          criterion_=custom_loss_BCELoss_CELoss,
+                          debug_v=True,
+                          nodes_nb=1000)
 
 print('>> One run model : AL_WS_CNN_image_specific : \n')
 
-all_train_loss , all_train_acc , all_test_loss , all_test_acc = train_multiple_runs( AL_WS_CNN_image_specific ,
-                                                                                     runs = 1 ,
-                                                                                     epoch = 25 ,
-                                                                                     lr_= 0.002 ,
-                                                                                     criterion_ = custom_loss_BCELoss_CELoss,
-                                                                                      debug_v = True,
-                                                                                     nodes_nb = -1 )
-
+res = train_multiple_runs(AL_WS_CNN_image_specific,
+                          runs=1,
+                          epoch=25,
+                          lr_=0.002,
+                          criterion_=custom_loss_BCELoss_CELoss,
+                          debug_v=True,
+                          nodes_nb=-1)
 
 '''
 print('\n\n\n',
