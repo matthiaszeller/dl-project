@@ -29,25 +29,22 @@ def train_multiple_runs(network_class, runs, epoch, lr_, criterion_, debug_v, **
     return all_train_loss, all_train_acc, all_test_loss, all_test_acc
 
 
-import numpy as np
-
-
 def plot_std_loss_acc(all_train_loss, all_train_acc, all_test_loss, all_test_acc, color=''):
-    trl_mean = np.array(all_train_loss).mean(axis=0)
-    tra_mean = np.array(all_train_acc).mean(axis=0)
-    tel_mean = np.array(all_test_loss).mean(axis=0)
-    tea_mean = np.array(all_test_acc).mean(axis=0)
+    trl_mean = torch.mean(torch.tensor(all_train_loss), dim = 0)
+    tra_mean = torch.mean(torch.tensor(all_train_acc), dim = 0)
+    tel_mean = torch.mean(torch.tensor(all_test_loss), dim = 0)
+    tea_mean = torch.mean(torch.tensor(all_test_acc), dim = 0)
 
-    trl_std = np.array(all_train_loss).std(axis=0)
-    tra_std = np.array(all_train_acc).std(axis=0)
-    tel_std = np.array(all_test_loss).std(axis=0)
-    tea_std = np.array(all_test_acc).std(axis=0)
+    trl_std = torch.std(torch.tensor(all_train_loss), dim = 0)
+    tra_std = torch.std(torch.tensor(all_train_acc), dim = 0)
+    tel_std = torch.std(torch.tensor(all_test_loss), dim = 0)
+    tea_std = torch.std(torch.tensor(all_test_acc), dim = 0)
 
     epochs = range(1, len(tea_std) + 1)
 
-    early_stopping = np.argmin(tel_mean)
-    print(f"at epoch {early_stopping} mean test acc : {tea_mean[early_stopping]}")
     print(f"mean last test acc : {tea_mean[-1]}")
+    print(f"std  last test acc : { tea_std  [-1] }")
+    
 
     temp = [[trl_mean, trl_std, 'g', 'trl'],
             [tel_mean, tel_std, 'b', 'tel'],
