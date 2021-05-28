@@ -1,4 +1,6 @@
-
+"""
+Main script which runs models once and displays training & test accuracies.
+"""
 
 # --------------------------------------------------------- #
 #                          IMPORTS                          #

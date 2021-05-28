@@ -1,4 +1,6 @@
-
+"""
+Utility functions used to train & test models.
+"""
 
 # --------------------------------------------------------- #
 #                          IMPORTS                          #

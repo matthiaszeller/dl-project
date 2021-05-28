@@ -1,3 +1,7 @@
+"""
+Script provided by the teacher.
+"""
+
 import torch
 from torchvision import datasets
 

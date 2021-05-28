@@ -1,3 +1,6 @@
+"""
+Utility functions to compute statistics about model performance.
+"""
 
 # --------------------------------------------------------- #
 #                          IMPORTS                          #
@@ -34,20 +37,20 @@ def train_multiple_runs(network_class, runs, epoch, lr_, criterion_, debug_v, **
 
 
 def plot_std_loss_acc(all_train_loss, all_train_acc, all_test_loss, all_test_acc, color=''):
-    trl_mean = torch.mean(torch.tensor(all_train_loss), dim = 0)
-    tra_mean = torch.mean(torch.tensor(all_train_acc), dim = 0)
-    tel_mean = torch.mean(torch.tensor(all_test_loss), dim = 0)
-    tea_mean = torch.mean(torch.tensor(all_test_acc), dim = 0)
+    trl_mean = torch.mean(torch.tensor(all_train_loss), dim=0)
+    tra_mean = torch.mean(torch.tensor(all_train_acc), dim=0)
+    tel_mean = torch.mean(torch.tensor(all_test_loss), dim=0)
+    tea_mean = torch.mean(torch.tensor(all_test_acc), dim=0)
 
-    trl_std = torch.std(torch.tensor(all_train_loss), dim = 0)
-    tra_std = torch.std(torch.tensor(all_train_acc), dim = 0)
-    tel_std = torch.std(torch.tensor(all_test_loss), dim = 0)
-    tea_std = torch.std(torch.tensor(all_test_acc), dim = 0)
+    trl_std = torch.std(torch.tensor(all_train_loss), dim=0)
+    tra_std = torch.std(torch.tensor(all_train_acc), dim=0)
+    tel_std = torch.std(torch.tensor(all_test_loss), dim=0)
+    tea_std = torch.std(torch.tensor(all_test_acc), dim=0)
 
     epochs = range(1, len(tea_std) + 1)
 
     print(f"mean last test acc : {tea_mean[-1]}")
-    print(f"std  last test acc : { tea_std  [-1] }")
+    print(f"std  last test acc : {tea_std[-1]}")
 
     temp = [[trl_mean, trl_std, 'g', 'trl'],
             [tel_mean, tel_std, 'b', 'tel'],
