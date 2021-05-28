@@ -1,7 +1,10 @@
 """
-Python module gathering functions, i.e. elementary operations as well as more complex ones (e.g. MSE).
+Module gathering API functions.
 This module is typically imported as:
     >>> import function as F
+
+All functions below are "elementary operations",
+i.e. they reimplement the two protected functions Module._forward, Module._backward
 """
 
 from torch import ones_like
@@ -24,6 +27,7 @@ class Add(Function):
         return Tensor(a.data + b.data)
 
     def _backward(self, output, *inputs):
+        # dy/dx = tensor of ones
         inputs[0].grad += output.grad
         inputs[1].grad += output.grad
 
@@ -36,6 +40,7 @@ class Sub(Function):
         return Tensor(a.data - b.data)
 
     def _backward(self, output, *inputs):
+        # dy/dx = tensor of ones
         inputs[0].grad += output.grad
         inputs[1].grad -= output.grad
 
@@ -48,6 +53,7 @@ class Mul(Function):
         return Tensor(a.data * b.data)
 
     def _backward(self, output, *inputs):
+        # d(xi * xj)/dxi = xj
         inputs[0].grad += output.grad * inputs[1].data
         inputs[1].grad += output.grad * inputs[0].data
 
@@ -65,6 +71,8 @@ class MatMul(Function):
             inputs[0].grad += output.grad * inputs[1].data
             inputs[1].grad += output.grad * inputs[0].data
         else:
+            # C = AB, adjoint{A} = adjoint{C} x B^T     (x is matrix mult)
+            #         adjoint{B} = A^T x adjoint{C}
             inputs[0].grad += output.grad @ inputs[1].data.T
             inputs[1].grad += inputs[0].data.T @ output.grad
 
@@ -77,7 +85,8 @@ class Sum(Function):
         return Tensor(a.data.sum())
 
     def _backward(self, output, *inputs):
-        inputs[0].grad += output.grad * ones_like(inputs[0].data)
+        # d(xi + xj)/dxi = tensor of ones
+        inputs[0].grad += output.grad
 
 
 class Transpose(Function):
@@ -88,6 +97,7 @@ class Transpose(Function):
         return Tensor(a.data.T)
 
     def _backward(self, output, *inputs):
+        # d(output)/dx = tensor of ones
         inputs[0].grad += output.grad.T
 
 
@@ -96,6 +106,8 @@ class MSELoss(Function):
     _name = 'mse'
 
     def _forward(self, yhat, y):
+        # MSE = 1/n * (yhat - y)^T (yhat - y)
+        #     = 1/n * e^T e
         n = y.shape[0]
         err = yhat.data - y.data
         res = err.T @ err / n
@@ -103,6 +115,7 @@ class MSELoss(Function):
         return Tensor(res)
 
     def _backward(self, output, *inputs):
+        # dyhat/dy = 1/n * 2 * e
         inputs[0].grad += 2 * self._context['err_over_n']
         inputs[1].grad -= 2 * self._context['err_over_n']
 
@@ -115,7 +128,7 @@ class ReLU(Function):
         return Tensor((x.data > 0.0) * x.data)
 
     def _backward(self, output, *inputs) -> None:
-        # input and output have the same shape, simply multiply element-wise
+        # dy/dx = I{x > 0}
         inputs[0].grad += output.grad * (inputs[0].data > 0.0)
 
 
