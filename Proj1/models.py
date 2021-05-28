@@ -15,10 +15,10 @@ import torch.nn as nn
 #                     MODELS DEFINITION                     #
 # --------------------------------------------------------- #
 
-# different FCNN structure (Fully Connected Neural Network)
-#
-# kwargs["nodes_nb"] is a parameter for the constructor of the model
-# to get different number of nodes
+# All models have keyword arguments in constructor, this allows to easily compare models
+# when running them in a loop. This is especially useful for the number of nodes (kwargs["nodes_nb"]).
+
+
 class FCNN_1LAYER(nn.Module):
     def __init__(self, **kwargs):
         super(FCNN_1LAYER, self).__init__()
@@ -120,10 +120,6 @@ class FCNN3(nn.Module):
         return torch.sigmoid(x)
 
 
-# different WS structure ( Weight Sharing )
-#
-# kwargs["nodes_nb"] is a parameter for the constructor of the model
-# to get different number of nodes
 class WS2(nn.Module):
     def __init__(self, **kwargs):
         super(WS2, self).__init__()
@@ -250,10 +246,6 @@ class WS3(nn.Module):
         return torch.sigmoid(x)
 
 
-# different AL structure (Auxiliary loss)
-#
-# kwargs["nodes_nb"] is a parameter for the constructor of the model
-# to get different number of nodes
 class AL1(nn.Module):
     def __init__(self, **kwargs):
         super(AL1, self).__init__()

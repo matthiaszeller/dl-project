@@ -33,7 +33,8 @@ The project is subdivided in the following Python modules:
 
 * `models.py`: Implements models that inherit from `torch.nn.Module`
 
-* `train.py`: Implements utility functions for training and testing
+* `train.py`: Implements utility functions for training and testing. You have to call `initialize_dataset()` before
+using the module.
 
 * `stats.py`: Implements tools to get statistics from running models multiple times, makes plots
 

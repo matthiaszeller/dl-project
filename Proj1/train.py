@@ -1,10 +1,13 @@
 """
 Utility functions used to train & test models.
+
+You have to call initialize_dataset() before using this module.
 """
 
 # --------------------------------------------------------- #
 #                          IMPORTS                          #
 # --------------------------------------------------------- #
+from typing import Tuple, Callable, Iterable
 
 import torch
 import torch.nn as nn
@@ -27,7 +30,8 @@ test_dataloader = None
 #                      TRAINING UTILS                      #
 # -------------------------------------------------------- #
 
-def initialize_dataset():
+def initialize_dataset() -> None:
+    """Instanciate data loaders."""
     # TRAIN SET
 
     train_dataset = TensorDataset(train_input, train_target, train_classes)
@@ -42,7 +46,7 @@ def initialize_dataset():
     print('\n\n')
 
 
-def handle_loss(criterion_):
+def handle_loss(criterion_) -> Tuple[Callable, Callable]:
     """
     Handle the fact that the network with auxiliary loss has three-item tuple output,
     which needs to be treated separately to compute the loss and the accuracy.
@@ -57,7 +61,7 @@ def handle_loss(criterion_):
     return internal_criterion, compute_acc
 
 
-def train_epoch(network_, optimizer_, criterion_=F.binary_cross_entropy):
+def train_epoch(network_, optimizer_, criterion_=F.binary_cross_entropy) -> Tuple[float, float]:
     """
     Trains the model for one epoch and returns the loss and accuracy using the specified criterion
     """
@@ -79,13 +83,15 @@ def train_epoch(network_, optimizer_, criterion_=F.binary_cross_entropy):
     return torch.FloatTensor(loss_tot).mean().item(), torch.cat(acc_tot).mean().item()
 
 
-def test(network_, criterion_=F.binary_cross_entropy):
+def test(network_, criterion_=F.binary_cross_entropy) -> Tuple[float, float]:
+    """Evaluate model performance."""
     internal_criterion, compute_acc = handle_loss(criterion_)
 
     network_.eval()
     test_loss = []
     acc = []
 
+    # No need for autograd in order to test the network (spare resourceS)
     with torch.no_grad():
         for data, target, classes in test_dataloader:
             output = network_(data)
@@ -96,7 +102,9 @@ def test(network_, criterion_=F.binary_cross_entropy):
     return torch.FloatTensor(test_loss).mean().item(), torch.cat(acc).mean().item()
 
 
-def train(network_, optimizer_, criterion_=F.binary_cross_entropy, epoch_nb=30, debug_=True):
+def train(network_, optimizer_, criterion_=F.binary_cross_entropy, epoch_nb=30, debug_=True) \
+        -> Tuple[Iterable[float], Iterable[float], Iterable[float], Iterable[float]]:
+    """Train a model by calling `train_epoch` at each epoch."""
     tot_train_loss = []
     tot_train_acc = []
     tot_test_loss = []
@@ -125,7 +133,7 @@ def train(network_, optimizer_, criterion_=F.binary_cross_entropy, epoch_nb=30, 
 #                        CUSTOM LOSS                        #
 # --------------------------------------------------------- #
 
-def custom_loss_BCELoss_CELoss(output, target, classes):
+def custom_loss_BCELoss_CELoss(output, target, classes) -> torch.Tensor:
     """
     Binary cross encropy and cross entroy loss.
     Custom loss for network with auxiliary losses. The total loss is a combination
