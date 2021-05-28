@@ -3,15 +3,26 @@
 
 ## About
 
-Implementation of Weight Sharing and Auxiliary Loss on PyTorch for digit comparison from MNIST Dataset. 
+Comparison of Weight Sharing and Auxiliary Loss on PyTorch for digit comparison from MNIST Dataset. 
 
 
 ## Running
-Run `test.py` without arguments to run each model once, displaying training and test accuracy. 
 
 **Note** : If the folder `data` of the MNIST Database is already present in the root `Proj1`, 
 then the dataset won't be downloaded.
 
+### Main script
+Run `test.py` without arguments to run each model once, displaying training and test accuracy. 
+
+
+### Cross validation, performance evaluation, plots
+
+Run the script `generate_plots.py` in order to:
+
+* Tune the learning rate of each model
+* Evaluate the performance of each model
+
+in both cases, each model is run 5 times.
 
 ## Project structure
 
