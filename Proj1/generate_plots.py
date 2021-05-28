@@ -37,7 +37,7 @@ print('\n\n\n',
 #        COMPARE AUXILIARY LOSS        #
 # ------------------------------------ #
 
-print('>> Auxiliary Loss')
+print('>> Generate figure 7, assess benefit of auxiliary loss')
 
 stats = [
     [1000, 0.0005, 'r', WS2, F.binary_cross_entropy],
@@ -70,7 +70,7 @@ plt.show()
 #        COMPARE WEIGHT SHARING        #
 # ------------------------------------ #
 
-print('>> Weight Sharing')
+print('>> Generate figure 6. Compare weight sharing with FCNN.')
 
 stats = [
     [1000, 0.0005, 'r', WS2],
@@ -96,7 +96,7 @@ plt.show()
 #    COMPARE FULLY CONNECTED MODELS    #
 # ------------------------------------ #
 
-print('>> Fully Connected')
+print('>> Generate figure 5: FCNNs with different number of layers and neurons.')
 
 stats = [
     [200, 0.001, 'r', FCNN3],
