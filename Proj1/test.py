@@ -31,7 +31,7 @@ print('>> One run model : FCNN3 : \n')
 res = train_multiple_runs(FCNN3,
                           runs=1,
                           epoch=25,
-                          lr_=0.0007,
+                          lr_=0.00015,
                           criterion_=F.binary_cross_entropy,
                           debug_v=True,
                           nodes_nb=1000)
