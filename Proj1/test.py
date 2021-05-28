@@ -7,9 +7,9 @@ import torch.nn.functional as F
 import os
 
 # --- Custom Imports
-from models import FCNN_1LAYER, FCNN_2LAYER, FCNN_3LAYER, FCNN_4LAYER, FCNN_image_specific, \
-                   WS_FCNN_image_specific1, CNN_image_specific1, WS_CNN_image_specific1, AL_FCNN_image_specific, \
-                   AL_WS_FCNN_image_specific1, AL_CNN_image_specific1, AL_WS_CNN_image_specific
+from models import FCNN_1LAYER, FCNN_2LAYER, FCNN_3LAYER, FCNN_4LAYER, FCNN3, \
+                   WS2, WS1, WS3, AL1, \
+                   AL3, AL2, AL4
 from train import custom_loss_BCELoss_CELoss, initialize_dataset
 
 initialize_dataset()
@@ -24,9 +24,9 @@ print('Authors :  \n',
       '-- Fatih   \n',
       '-- Etienne \n\n')
 
-print('>> One run model : FCNN_image_specific : \n')
+print('>> One run model : FCNN3 : \n')
 
-res = train_multiple_runs(FCNN_image_specific,
+res = train_multiple_runs(FCNN3,
                           runs=1,
                           epoch=25,
                           lr_=0.0007,
@@ -34,9 +34,10 @@ res = train_multiple_runs(FCNN_image_specific,
                           debug_v=True,
                           nodes_nb=1000)
 
-print('>> One run model : WS_FCNN_image_specific1 : \n')
+print('>> One run model : WS2 : \n')
 
-res = train_multiple_runs(WS_FCNN_image_specific1,
+# WS_FCNN_ image_specific1
+res = train_multiple_runs(WS2,
                           runs=1,
                           epoch=25,
                           lr_=0.0005,
@@ -44,9 +45,9 @@ res = train_multiple_runs(WS_FCNN_image_specific1,
                           debug_v=True,
                           nodes_nb=1000)
 
-print('>> One run model : CNN_image_specific1 : \n')
+print('>> One run model : WS1 : \n')
 
-res = train_multiple_runs(CNN_image_specific1,
+res = train_multiple_runs(WS1,
                           runs=1,
                           epoch=25,
                           lr_=0.0008,
@@ -54,9 +55,9 @@ res = train_multiple_runs(CNN_image_specific1,
                           debug_v=True,
                           nodes_nb=-1)
 
-print('>> One run model : WS_CNN_image_specific1 : \n')
+print('>> One run model : WS3 : \n')
 
-res = train_multiple_runs(WS_CNN_image_specific1,
+res = train_multiple_runs(WS3,
                           runs=1,
                           epoch=25,
                           lr_=0.0008,
@@ -64,9 +65,9 @@ res = train_multiple_runs(WS_CNN_image_specific1,
                           debug_v=True,
                           nodes_nb=-1)
 
-print('>> One run model : AL_FCNN_image_specific : \n')
+print('>> One run model : AL1 : \n')
 
-res = train_multiple_runs(AL_FCNN_image_specific,
+res = train_multiple_runs(AL1,
                           runs=1,
                           epoch=25,
                           lr_=0.0005,
@@ -74,9 +75,9 @@ res = train_multiple_runs(AL_FCNN_image_specific,
                           debug_v=True,
                           nodes_nb=1000)
 
-print('>> One run model : AL_WS_FCNN_image_specific1 : \n')
+print('>> One run model : AL3 : \n')
 
-res = train_multiple_runs(AL_WS_FCNN_image_specific1,
+res = train_multiple_runs(AL3,
                           runs=1,
                           epoch=25,
                           lr_=0.0005,
@@ -84,9 +85,9 @@ res = train_multiple_runs(AL_WS_FCNN_image_specific1,
                           debug_v=True,
                           nodes_nb=1000)
 
-print('>> One run model : AL_CNN_image_specific1 : \n')
+print('>> One run model : AL2 : \n')
 
-res = train_multiple_runs(AL_CNN_image_specific1,
+res = train_multiple_runs(AL2,
                           runs=1,
                           epoch=25,
                           lr_=0.0008,
@@ -94,9 +95,9 @@ res = train_multiple_runs(AL_CNN_image_specific1,
                           debug_v=True,
                           nodes_nb=1000)
 
-print('>> One run model : AL_WS_CNN_image_specific : \n')
+print('>> One run model : AL4 : \n')
 
-res = train_multiple_runs(AL_WS_CNN_image_specific,
+res = train_multiple_runs(AL4,
                           runs=1,
                           epoch=25,
                           lr_=0.002,
@@ -117,19 +118,19 @@ print('>> Auxiliary Loss')
 ###########################################################################
 
 stats = [
-         [1000  ,0.0005  ,'r' , WS_FCNN_image_specific1       , F.binary_cross_entropy ] ,
-         [1000  ,0.0005  ,'r' , AL_WS_FCNN_image_specific1    , custom_loss_BCELoss_CELoss ] ,
+         [1000  ,0.0005  ,'r' , WS2       , F.binary_cross_entropy ] ,
+         [1000  ,0.0005  ,'r' , AL3    , custom_loss_BCELoss_CELoss ] ,
 
 
-         [1000  ,0.0005  ,'black' , FCNN_image_specific     , F.binary_cross_entropy ] ,
-         [1000  ,0.0005  ,'black' , AL_FCNN_image_specific  , custom_loss_BCELoss_CELoss ] ,
+         [1000  ,0.0005  ,'black' , FCNN3     , F.binary_cross_entropy ] ,
+         [1000  ,0.0005  ,'black' , AL1  , custom_loss_BCELoss_CELoss ] ,
 
 
-         [ -1    ,0.0008 , 'y' ,CNN_image_specific1          , F.binary_cross_entropy ] ,
-         [ -1    ,0.0008 , 'y' ,AL_CNN_image_specific1       , custom_loss_BCELoss_CELoss ] ,
+         [ -1    ,0.0008 , 'y' ,WS1          , F.binary_cross_entropy ] ,
+         [ -1    ,0.0008 , 'y' ,AL2       , custom_loss_BCELoss_CELoss ] ,
 
-         [ -1     ,0.002  , 'b' ,WS_CNN_image_specific1       , F.binary_cross_entropy ] ,
-         [ -1    ,0.002  , 'b' ,AL_WS_CNN_image_specific     , custom_loss_BCELoss_CELoss ] ,
+         [ -1     ,0.002  , 'b' ,WS3       , F.binary_cross_entropy ] ,
+         [ -1    ,0.002  , 'b' ,AL4     , custom_loss_BCELoss_CELoss ] ,
          ]
 
 for el in stats:
@@ -150,10 +151,10 @@ print('>> Weight Sharing')
 ###########################################################################
 
 stats = [
-         [1000  ,0.0005  ,'r' , WS_FCNN_image_specific1] ,
-         [1000  ,0.0005  ,'black' , FCNN_image_specific   ] ,
-         [ -1     ,0.0008 , 'y' ,CNN_image_specific1 ] ,
-         [ -1    ,0.002 , 'b' ,WS_CNN_image_specific1 ] ,
+         [1000  ,0.0005  ,'r' , WS2] ,
+         [1000  ,0.0005  ,'black' , FCNN3   ] ,
+         [ -1     ,0.0008 , 'y' ,WS1 ] ,
+         [ -1    ,0.002 , 'b' ,WS3 ] ,
          ]
 
 for el in stats:
@@ -175,11 +176,11 @@ print('>> Fully Connected')
 ####################### FCNN GRAPH ########################################
 ###########################################################################
 
-stats = [[200  ,0.001  ,'r' , FCNN_image_specific] ,
-         [500  ,0.001  ,'r' , FCNN_image_specific] ,
-         [700  ,0.0007 ,'r' , FCNN_image_specific] ,
-         [1000 ,0.0005 ,'r' , FCNN_image_specific] ,
-         [1500 ,0.0002 ,'r' , FCNN_image_specific] ,
+stats = [[200  ,0.001  ,'r' , FCNN3] ,
+         [500  ,0.001  ,'r' , FCNN3] ,
+         [700  ,0.0007 ,'r' , FCNN3] ,
+         [1000 ,0.0005 ,'r' , FCNN3] ,
+         [1500 ,0.0002 ,'r' , FCNN3] ,
          
          [200 ,0.0004  ,'b', FCNN_1LAYER],
          [500 ,0.00025 ,'b', FCNN_1LAYER],

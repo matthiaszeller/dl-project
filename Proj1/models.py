@@ -84,9 +84,9 @@ class FCNN_4LAYER(nn.Module):
         return torch.sigmoid(x)
 
 
-class FCNN_image_specific(nn.Module):
+class FCNN3(nn.Module):
     def __init__(self, **kwargs):
-        super(FCNN_image_specific, self).__init__()
+        super(FCNN3, self).__init__()
 
         nb_n = kwargs["nodes_nb"]
 
@@ -119,9 +119,9 @@ class FCNN_image_specific(nn.Module):
 ##
 ## kwargs["nodes_nb"] is a parameter for the constructor of the model
 ## to get different number of nodes
-class WS_FCNN_image_specific1(nn.Module):
+class WS2(nn.Module):
     def __init__(self, **kwargs):
-        super(WS_FCNN_image_specific1, self).__init__()
+        super(WS2, self).__init__()
 
         nb_n = kwargs["nodes_nb"]
 
@@ -149,9 +149,9 @@ class WS_FCNN_image_specific1(nn.Module):
         return torch.sigmoid(x)
 
 
-class CNN_image_specific1(nn.Module):
+class WS1(nn.Module):
     def __init__(self, **kwargs):
-        super(CNN_image_specific1, self).__init__()
+        super(WS1, self).__init__()
 
         self.conv1l = nn.Conv2d(1, 5, kernel_size=3)
         self.conv2l = nn.Conv2d(5, 8, kernel_size=3)
@@ -200,9 +200,9 @@ class CNN_image_specific1(nn.Module):
         return torch.sigmoid(x)
 
 
-class WS_CNN_image_specific1(nn.Module):
+class WS3(nn.Module):
     def __init__(self, **kwargs):
-        super(WS_CNN_image_specific1, self).__init__()
+        super(WS3, self).__init__()
 
         self.conv1 = nn.Conv2d(1, 5, kernel_size=3)
         self.conv2 = nn.Conv2d(5, 8, kernel_size=3)
@@ -249,9 +249,9 @@ class WS_CNN_image_specific1(nn.Module):
 ##
 ## kwargs["nodes_nb"] is a parameter for the constructor of the model
 ## to get different number of nodes
-class AL_FCNN_image_specific(nn.Module):
+class AL1(nn.Module):
     def __init__(self, **kwargs):
-        super(AL_FCNN_image_specific, self).__init__()
+        super(AL1, self).__init__()
 
         nb_n = kwargs["nodes_nb"]
 
@@ -283,9 +283,9 @@ class AL_FCNN_image_specific(nn.Module):
         return torch.sigmoid(x), x_l, x_r
 
 
-class AL_WS_FCNN_image_specific1(nn.Module):
+class AL3(nn.Module):
     def __init__(self, **kwargs):
-        super(AL_WS_FCNN_image_specific1, self).__init__()
+        super(AL3, self).__init__()
 
         nb_n = kwargs["nodes_nb"]
 
@@ -317,9 +317,9 @@ class AL_WS_FCNN_image_specific1(nn.Module):
         return torch.sigmoid(x), x_l, x_r
 
 
-class AL_CNN_image_specific1(nn.Module):
+class AL2(nn.Module):
     def __init__(self, **kwargs):
-        super(AL_CNN_image_specific1, self).__init__()
+        super(AL2, self).__init__()
 
         self.conv1l = nn.Conv2d(1, 5, kernel_size=3)
         self.conv2l = nn.Conv2d(5, 8, kernel_size=3)
@@ -368,10 +368,10 @@ class AL_CNN_image_specific1(nn.Module):
         return torch.sigmoid(x), x_l, x_r
 
 
-class AL_WS_CNN_image_specific(nn.Module):
+class AL4(nn.Module):
     ## lr = 0.001
     def __init__(self, **kwargs):
-        super(AL_WS_CNN_image_specific, self).__init__()
+        super(AL4, self).__init__()
 
         self.conv1 = nn.Conv2d(1, 5, kernel_size=3)
         self.conv2 = nn.Conv2d(5, 8, kernel_size=3)
