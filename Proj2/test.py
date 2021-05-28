@@ -15,11 +15,15 @@ Example of usage:
 # --- Standard modules
 import argparse
 import json
-from math import pi, sqrt
+from math import pi
 from typing import Union, List
 
-from torch import empty, tensor, linspace, vstack, set_grad_enabled
-from matplotlib import pyplot as plt
+from torch import empty, tensor, set_grad_enabled
+
+# --- Visualization-related imports, not used for the delivered code
+# from math import sqrt
+# from matplotlib import pyplot as plt
+# from torch import linspace, vstack
 
 # --- Our custom modules
 import function as F
@@ -107,8 +111,8 @@ squared_dist = ((X - center)**2).sum(axis=1)
 radius_squared = 1 / 2 / pi
 target = (squared_dist < radius_squared) * 1
 # Decision boundary (for plotting)
-angles = linspace(0., 2. * pi, 200)
-decision_bdry_true = vstack([angles.cos(), angles.sin()]).T * sqrt(radius_squared) + center
+# angles = linspace(0., 2. * pi, 200)
+# decision_bdry_true = vstack([angles.cos(), angles.sin()]).T * sqrt(radius_squared) + center
 
 # --- Data splitting - Training & test sets
 # Important note: we don't need to shuffle the data, as this each sample is already random
@@ -118,23 +122,21 @@ xtrain, xtest = X[:split_point], X[split_point:]
 ytrain, ytest = target[:split_point], target[split_point:]
 
 
-plt.figure(figsize=(5, 5))
-# --- Plot dataset
-plt.scatter(xtrain[ytrain == 1, 0], xtrain[ytrain == 1, 1], marker='o', c='m', label='target 1, training')
-plt.scatter(xtrain[ytrain == 0, 0], xtrain[ytrain == 0, 1], marker='o', c='b', label='target 0, training')
-plt.scatter(xtest[ytest == 1, 0], xtest[ytest == 1, 1], marker='x', c='m', label='target 1, test')
-plt.scatter(xtest[ytest == 0, 0], xtest[ytest == 0, 1], marker='x', c='b', label='target 0, test')
-
-# --- Plot decision boundaries
-plt.plot(decision_bdry_true[:, 0], decision_bdry_true[:, 1], 'k--', label='true decision boundary')
-
-# --- Labeling
-plt.xlabel('x1')
-plt.ylabel('x2')
-legend = plt.legend(bbox_to_anchor=(1.05, 1))
-
-plt.savefig('fig_dataset.pdf', bbox_inches='tight')
-plt.show()
+# --- Plotting data
+# plt.figure(figsize=(5, 5))
+# plt.scatter(xtrain[ytrain == 1, 0], xtrain[ytrain == 1, 1], marker='o', c='m', label='target 1, training')
+# plt.scatter(xtrain[ytrain == 0, 0], xtrain[ytrain == 0, 1], marker='o', c='b', label='target 0, training')
+# plt.scatter(xtest[ytest == 1, 0], xtest[ytest == 1, 1], marker='x', c='m', label='target 1, test')
+# plt.scatter(xtest[ytest == 0, 0], xtest[ytest == 0, 1], marker='x', c='b', label='target 0, test')
+#
+# # Plot decision boundaries
+# plt.plot(decision_bdry_true[:, 0], decision_bdry_true[:, 1], 'k--', label='true decision boundary')
+#
+# plt.xlabel('x1')
+# plt.ylabel('x2')
+# legend = plt.legend(bbox_to_anchor=(1.05, 1))
+# plt.savefig('fig_dataset.pdf', bbox_inches='tight')
+# plt.show()
 
 # --- Data normalization
 mu, std = xtrain.mean(0), xtrain.std(0)
@@ -161,26 +163,33 @@ models = [
 # -------------------------------------------------------- #
 
 # Learning rates selected by KFoldCV (run this script with --cv argument)
-# the values in the list correspond to the models defined right above
+# the values in the list correspond (by position in the list) to the models defined right above
 lrs = [
     0.01,
-    0.015,
-    0.005,
-    0.005,
     0.1,
-    0.05
+    0.005,
+    0.01,
+    0.1,
+    0.06
 ]
 
 # --- Cross validating learning rates
 if args.cv:
     results = []
-    # Grid for learning rates
-    lrs = [0.001, 0.005, 0.01, 0.05, 0.1, 0.15, 0.2]
-    for m in models:
+    # Grid for learning rates, specific for each model
+    lrs = [
+        [0.008, 0.01, 0.02, 0.03, 0.05],
+        [0.03, 0.05, 0.1, 0.15, 0.2],
+        [0.003, 0.005, 0.008, 0.01],
+        [0.003, 0.005, 0.01, 0.02],
+        [0.05, 0.08, 0.1, 0.2, 0.3],
+        [0.04, 0.05, 0.06, 0.07],
+    ]
+    for i, m in enumerate(models):
         print(f'model {m["model_name"]}')
-        for lr in lrs:
+        for lr in lrs[i]:
             print(f'lr {lr}')
-            res = kfold_cv(lambda: build_model(**m), X, target, F.MSELoss(), acc, lr=lr, epochs=20, k=5)
+            res = kfold_cv(lambda: build_model(**m), X, target, F.MSELoss(), acc, lr=lr, epochs=30, k=5)
             # Log results
             train_acc = [e['acc_train'] for e in res]
             test_acc = [e['acc_test'] for e in res]
@@ -223,7 +232,7 @@ elif args.stats:
 #                      STANDARD SCRIPT                      #
 # --------------------------------------------------------- #
 
-# This part is run is no argument is provided
+# This part is run if no argument is provided
 else:
     models = [build_model(**kwargs) for kwargs in models]
 
@@ -239,16 +248,16 @@ else:
     results = []
     for model, lr in zip(models, lrs):
         print(f'model {model._name}\t', end='')
-        log, train_acc, test_acc = train_and_test(model, train_dataset, test_dataset, F.MSELoss(), lr=lr, epochs=35)
-        plt.semilogy(log['loss'], '-o', label=model._name)
+        log, train_acc, test_acc = train_and_test(model, train_dataset, test_dataset, F.MSELoss(), lr=lr, epochs=30)
+        # plt.semilogy(log['loss'], '-o', label=model._name)
         results.append((log, train_acc, test_acc))
 
-    # --- Loss
-    plt.xlabel('epochs')
-    plt.ylabel('average MSE per epoch')
-    plt.legend()
-    plt.savefig('fig_loss.pdf', bbox_inches='tight')
-    plt.show()
+    # --- Plotting
+    # plt.xlabel('epochs')
+    # plt.ylabel('average MSE per epoch')
+    # plt.legend()
+    # plt.savefig('fig_loss.pdf', bbox_inches='tight')
+    # plt.show()
 
     # --- Performance evaluation
     pretty_print_section('performance evaluation')
